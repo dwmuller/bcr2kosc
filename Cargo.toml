@@ -1,0 +1,13 @@
+[package]
+name = "bcr2kosc"
+version = "0.1.0"
+edition = "2021"
+authors = [ "dan.muller@dmuller.us" ]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+midir = "0.8.0"
+clap = { version = "4.0.14", features = ["derive"] }
+exitcode = "1.1.2"
+
