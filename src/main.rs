@@ -52,7 +52,7 @@ fn list_ports() -> Result<(), Box<dyn Error>> {
         _ => {
             println!("\nAvailable input ports:");
             for (i, p) in in_ports.iter().enumerate() {
-                println!("{}: {}", i, midi_in.port_name(p).unwrap());
+                println!("{i}: {}", midi_in.port_name(p).unwrap());
             }
         }
     };
@@ -64,10 +64,9 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
     let in_port = find_port(&midi_in, port_name)?;
     let _conn_in = midi_in.connect(&in_port, "bcr2kosc listen connection", 
         move |stamp, msg, _| {
-              println!("{}: {:?} (len={})", stamp, msg, msg.len());
+              println!("{stamp}: {msg:?} (len={})", msg.len());
         }, ())?;
-    println!("Connection open, reading input from '{}'. Press Enter to exit.", 
-             port_name);
+    println!("Connection open, reading input from '{port_name}'. Press Enter to exit.");
     let mut input = String::new();
     stdin().read_line(&mut input)?;
     println!("Closing connection");
