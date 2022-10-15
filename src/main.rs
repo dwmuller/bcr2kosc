@@ -53,7 +53,7 @@ fn list_ports () {
     print_ports("output", &midi_out);
 }
 
-fn print_ports<T: MidiIO>(dir: &str, io: &T) {
+fn print_ports(dir: &str, io: &impl MidiIO) {
 
     let ports = io.ports();
     match ports.len() {
