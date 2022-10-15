@@ -4,6 +4,7 @@ use std::io::{stdin/* , stdout, Write */};
 use std::error::Error;
 
 use midir::{MidiIO, MidiInput, MidiInputPort, MidiOutput};
+use midi_msg::MidiMsg;
 
 const PGM :&str = "bcr2kosc";
 
@@ -71,7 +72,9 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
     let in_port = find_port(&midi_in, port_name)?;
     let _conn_in = midi_in.connect(&in_port, &format!("{PGM} listen connection"), 
         move |stamp, msg, _| {
-            println!("{stamp}: {msg:?} (len={})", msg.len());
+            if let Ok(midi) = MidiMsg::from_midi(msg) {
+                println!("{stamp}: {midi:?} (len={})", msg.len());
+            }
         }, ())?;
     println!("Connection open, reading input from '{port_name}'. Press Enter to exit.");
     let mut input = String::new();

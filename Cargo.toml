@@ -10,4 +10,5 @@ authors = [ "dan.muller@dmuller.us" ]
 midir = "0.8.0"
 clap = { version = "4.0.14", features = ["derive"] }
 exitcode = "1.1.2"
+midi-msg = "0.4.0"
 
