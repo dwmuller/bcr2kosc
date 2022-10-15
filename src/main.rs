@@ -5,6 +5,8 @@ use std::error::Error;
 
 use midir::{MidiIO, MidiInput, MidiInputPort, MidiOutput};
 
+const PGM :&str = "bcr2kosc";
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -26,7 +28,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match &cli.command {
-        Some(Commands::List {}) => { list_ports(); Ok(()) },
+        Some(Commands::List {}) => { Ok(list_ports()) },
         Some(Commands::Listen{ port_name }) => listen(port_name),
         None => Ok(())
     }
@@ -44,9 +46,9 @@ fn find_port(midi_in: &MidiInput, port_name: &str) -> Result<MidiInputPort, Box<
 }
 
 fn list_ports () {
-    let midi_in = MidiInput::new("{pgr} list_ports").unwrap();
+    let midi_in = MidiInput::new("{PGM} list_ports").unwrap();
     print_ports("input", &midi_in);
-    let midi_out = MidiOutput::new("{pgr} list_ports").unwrap();
+    let midi_out = MidiOutput::new("{PGM} list_ports").unwrap();
     print_ports("output", &midi_out);
 }
 
@@ -65,11 +67,11 @@ fn print_ports<T: MidiIO>(dir: &str, io: &T) {
 }
 
 fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
-    let midi_in = MidiInput::new("bcr2kosc listening")?;
+    let midi_in = MidiInput::new(&format!("{PGM} listening"))?;
     let in_port = find_port(&midi_in, port_name)?;
-    let _conn_in = midi_in.connect(&in_port, "bcr2kosc listen connection", 
+    let _conn_in = midi_in.connect(&in_port, &format!("{PGM} listen connection"), 
         move |stamp, msg, _| {
-              println!("{stamp}: {msg:?} (len={})", msg.len());
+            println!("{stamp}: {msg:?} (len={})", msg.len());
         }, ())?;
     println!("Connection open, reading input from '{port_name}'. Press Enter to exit.");
     let mut input = String::new();
