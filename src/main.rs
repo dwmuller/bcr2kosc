@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 use std::io::{stdin/* , stdout, Write */};
 use std::error::Error;
 
-use midir::{MidiInput, MidiInputPort};
+use midir::{MidiIO, MidiInput, MidiInputPort, MidiOutput};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -26,7 +26,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match &cli.command {
-        Some(Commands::List {}) => list_ports(),
+        Some(Commands::List {}) => { list_ports(); Ok(()) },
         Some(Commands::Listen{ port_name }) => listen(port_name),
         None => Ok(())
     }
@@ -43,20 +43,25 @@ fn find_port(midi_in: &MidiInput, port_name: &str) -> Result<MidiInputPort, Box<
     }
 }
 
-fn list_ports() -> Result<(), Box<dyn Error>> {
+fn list_ports () {
+    let midi_in = MidiInput::new("{pgr} list_ports").unwrap();
+    print_ports("input", &midi_in);
+    let midi_out = MidiOutput::new("{pgr} list_ports").unwrap();
+    print_ports("output", &midi_out);
+}
 
-    let midi_in = MidiInput::new("bcr2kosc listing")?;
-    let in_ports = midi_in.ports();
-    match in_ports.len() {
-        0 => return Err("no input ports found".into()),
+fn print_ports<T: MidiIO>(dir: &str, io: &T) {
+
+    let ports = io.ports();
+    match ports.len() {
+        0 => println!("No {dir} ports found"),
         _ => {
-            println!("\nAvailable input ports:");
-            for (i, p) in in_ports.iter().enumerate() {
-                println!("{i}: {}", midi_in.port_name(p).unwrap());
+            println!("\nAvailable {dir} ports:");
+            for (i, p) in ports.iter().enumerate() {
+                println!("{i}: {}", io.port_name(p).unwrap());
             }
         }
     };
-    Ok(())
 }
 
 fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
@@ -72,3 +77,4 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
     println!("Closing connection");
     Ok(())
 }
+
