@@ -64,13 +64,13 @@ impl BControlSysEx {
                     BControlCommand::SendIdentity {
                         id_string: string_from_midi(&m[3..])?,
                     },
-                    m.len(),
+                    m.len()-3,
                 ),
                 0x20 => (
                     BControlCommand::SendBclMessage {
                         text: string_from_midi(&m[3..])?,
                     },
-                    m.len(),
+                    m.len()-3,
                 ),
                 0x21 => {
                     if m.len() > 6 {
@@ -80,7 +80,7 @@ impl BControlSysEx {
                                 preset: PresetIndex::from_midi(&m[3..])?,
                                 name: string_from_midi(&m[4..])?,
                             },
-                            m.len(),
+                            m.len()-3,
                         )
                     } else {
                         (
@@ -97,7 +97,7 @@ impl BControlSysEx {
                     BControlCommand::SendFirmware {
                         data: m[3..].to_vec(),
                     },
-                    m.len(),
+                    m.len()-3,
                 ),
                 0x35 => (
                     BControlCommand::FirmwareReply {
