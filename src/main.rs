@@ -1,10 +1,12 @@
-
 use clap::{Parser, Subcommand};
 use std::io::{stdin/* , stdout, Write */};
 use std::error::Error;
 
-use midir::{MidiIO, MidiInput, MidiInputPort, MidiOutput};
-use midi_msg::MidiMsg;
+use midir::{MidiIO, MidiInput, MidiOutput};
+use midi_msg::{MidiMsg, SystemExclusiveMsg};
+
+mod b_control;
+use b_control::*;
 
 const PGM :&str = "bcr2kosc";
 
@@ -23,23 +25,32 @@ enum Commands {
     Listen {
         /// The name of the port to listen to. Use the list command to see ports.
         port_name: String
+    },
+    /// Find and list Behringer B-Control devices.
+    Find {
+        /// The name of the MIDI port recieve data from.
+        in_port_name: String,
+        /// The name of the MIDI port to send data to.
+        out_port_name: String,
     }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match &cli.command {
-        Some(Commands::List {}) => { Ok(list_ports()) },
+        Some(Commands::List {}) => Ok(list_ports()),
         Some(Commands::Listen{ port_name }) => listen(port_name),
+        Some(Commands::Find {in_port_name, out_port_name }) 
+            => list_bcontrols(in_port_name, out_port_name),
         None => Ok(())
     }
 }
 
-fn find_port(midi_in: &MidiInput, port_name: &str) -> Result<MidiInputPort, Box<dyn Error>> {
-    let ports = midi_in.ports();
+fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port, Box<dyn Error>> {
+    let ports = midi_io.ports();
     let wanted = Ok(port_name.to_string());
     let port = ports.iter()
-        .find(|&x| midi_in.port_name(&x) == wanted);
+        .find(|&x| midi_io.port_name(&x) == wanted);
     match port {
         Some(p) => Ok(p.clone()),
         None => Err("MIDI port not found".into()),
@@ -72,11 +83,64 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
     let in_port = find_port(&midi_in, port_name)?;
     let _conn_in = midi_in.connect(&in_port, &format!("{PGM} listen connection"), 
         move |stamp, msg, _| {
-            if let Ok(midi) = MidiMsg::from_midi(msg) {
+            if let Ok((midi, _)) = MidiMsg::from_midi(msg) {
                 println!("{stamp}: {midi:?} (len={})", msg.len());
             }
         }, ())?;
     println!("Connection open, reading input from '{port_name}'. Press Enter to exit.");
+    let mut input = String::new();
+    stdin().read_line(&mut input)?;
+    println!("Closing connection");
+    Ok(())
+}
+
+fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn Error>> {
+    let midi_in = MidiInput::new(&format!("{PGM} finding B-controls"))?;
+    let in_port = find_port(&midi_in, in_port_name)?;
+    let _conn_in = midi_in.connect(&in_port, in_port_name, 
+        move |_stamp, midi_data, _context| {
+            match MidiMsg::from_midi(midi_data) {
+                Ok((mm,_)) => {
+                    match mm {
+                        MidiMsg::SystemExclusive { msg: SystemExclusiveMsg::Commercial { id, data } } => {
+                            if id == BEHRINGER {
+                                match BControlSysEx::from_midi(&data) {
+                                    Ok((m, n)) => {
+                                        if n < data.len() {
+                                            println!("B-Control message did not parse all sysex data.");
+                                        }
+                                        println!("{m:?}");
+                                    },
+                                    Err(e) => print!("{e}: sysex data: {data:x?}")
+                                };
+                            }
+                            else {
+                                println!("Non-Behringer commercial sysex.");
+                            }
+                        },
+                        _ => println!("Other MIDI: {mm:?}")
+                    }
+                },
+                Err(e) => println!("{e:?}")
+            };
+            },
+        ())?;
+
+    let bdata = BControlSysEx{
+        device: DeviceID::Device(0), 
+        model: BControlModel::BCR, 
+        command: BControlCommand::RequestIdentity
+    }.to_midi();
+    let req = MidiMsg::SystemExclusive {
+        msg: (SystemExclusiveMsg::Commercial { id: BEHRINGER, data: (bdata) })
+    }.to_midi();
+    let midi_out = MidiOutput::new(&format!("{PGM} finding B-controls"))?;
+    let out_port = find_port(&midi_out, out_port_name)?;
+    let mut conn_out = midi_out.connect(&out_port, "{PGM} finding B-controls")?;
+    conn_out.send(&req)?;
+    conn_out.close();
+
+    println!("Connection open, reading input from '{in_port_name}'. Press Enter to exit.");
     let mut input = String::new();
     stdin().read_line(&mut input)?;
     println!("Closing connection");
