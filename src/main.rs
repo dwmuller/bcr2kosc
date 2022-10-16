@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::io::{stdin/* , stdout, Write */};
 use std::error::Error;
+use std::time::Duration;
 
 use midir::{MidiIO, MidiInput, MidiOutput};
 use midi_msg::{MidiMsg, SystemExclusiveMsg};
@@ -99,30 +100,28 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
     let in_port = find_port(&midi_in, in_port_name)?;
     let _conn_in = midi_in.connect(&in_port, in_port_name, 
         move |_stamp, midi_data, _context| {
-            match MidiMsg::from_midi(midi_data) {
-                Ok((mm,_)) => {
-                    match mm {
-                        MidiMsg::SystemExclusive { msg: SystemExclusiveMsg::Commercial { id, data } } => {
-                            if id == BEHRINGER {
-                                match BControlSysEx::from_midi(&data) {
-                                    Ok((m, n)) => {
-                                        if n < data.len() {
-                                            println!("B-Control message did not parse all sysex data.");
-                                        }
-                                        println!("{m:?}");
-                                    },
-                                    Err(e) => print!("{e}: sysex data: {data:x?}")
-                                };
-                            }
-                            else {
-                                println!("Non-Behringer commercial sysex.");
-                            }
-                        },
-                        _ => println!("Other MIDI: {mm:?}")
+            let mm = MidiMsg::from_midi(midi_data);
+            if let Ok((
+                    MidiMsg::SystemExclusive {
+                        msg: SystemExclusiveMsg::Commercial {
+                            id: BEHRINGER, data
+                        }
+                    },
+                    _ // unused size of consumed MIDI
+                )) = mm {
+                    // Recognized as a Behringer sysex. Parse the sysex payload.
+                    let bc = BControlSysEx::from_midi(&data);
+                    if let Ok((
+                            BControlSysEx{
+                                device: DeviceID::Device(dev), 
+                                model: _,
+                                command: BControlCommand::SendIdentity { id_string }
+                            },
+                            _ // unused size of consumed data
+                        )) = bc {
+                            println!("{}: {}", dev, id_string);
                     }
-                },
-                Err(e) => println!("{e:?}")
-            };
+                }
             },
         ())?;
 
@@ -132,18 +131,13 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
         command: BControlCommand::RequestIdentity
     }.to_midi();
     let req = MidiMsg::SystemExclusive {
-        msg: (SystemExclusiveMsg::Commercial { id: BEHRINGER, data: (bdata) })
+        msg: (SystemExclusiveMsg::Commercial { id: BEHRINGER, data: bdata })
     }.to_midi();
     let midi_out = MidiOutput::new(&format!("{PGM} finding B-controls"))?;
     let out_port = find_port(&midi_out, out_port_name)?;
     let mut conn_out = midi_out.connect(&out_port, "{PGM} finding B-controls")?;
     conn_out.send(&req)?;
-    conn_out.close();
-
-    println!("Connection open, reading input from '{in_port_name}'. Press Enter to exit.");
-    let mut input = String::new();
-    stdin().read_line(&mut input)?;
-    println!("Closing connection");
+    std::thread::sleep(Duration::from_millis(100));
     Ok(())
 }
 

@@ -12,7 +12,7 @@ use midi_msg::ParseError;
 pub use midi_msg::{ManufacturerID, DeviceID};
 
 /// Behringer's MIDI manufacturer ID.
-pub static BEHRINGER: ManufacturerID = ManufacturerID(0x20u8, Some(0x32u8));
+pub const BEHRINGER: ManufacturerID = ManufacturerID(0x20u8, Some(0x32u8));
 
 /// B-Control mode system exclusive data. All system exclusive message data 
 /// to or from the BC devices have this structure.
