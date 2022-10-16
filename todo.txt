@@ -1,0 +1,7 @@
+- Logging
+- Listening for OSC cxns
+- OSC definition, parsing, generation
+- BCR preset mgmt
+- Reaper OSC def
+- Run as Windows service
+  - Must be robust to device changes
