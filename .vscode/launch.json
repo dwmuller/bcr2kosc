@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Debug",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
-            "args": ["listen", "BCR2000"],
+            "args": ["find", "Focusrite USB MIDI", "Focusrite USB MIDI"],
             "cwd": "${workspaceFolder}"
         }
     ]
