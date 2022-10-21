@@ -1,15 +1,20 @@
 use clap::{Parser, Subcommand};
-use std::error::Error;
+use stderrlog::LogLevelNum;
 use std::io::stdin;
 use std::time::Duration;
+use std::{error::Error, net::SocketAddr};
 
 use midi_msg::{MidiMsg, SystemExclusiveMsg};
 use midir::{MidiIO, MidiInput, MidiOutput};
 
 mod b_control;
+mod bcl;
 use b_control::*;
+mod midi_util;
+use midi_util::*;
+mod osc_service;
 
-const PGM: &str = "bcr2kosc";
+pub const PGM: &str = "bcr2kosc";
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -34,9 +39,25 @@ enum Commands {
         /// The name of the MIDI port to send data to.
         out_port_name: String,
     },
+    /// Start an OSC service/client pair that translates to and from MIDI.
+    Serve {
+        /// The name of the input MIDI port.
+        midi_in: String,
+        /// The name of the output MIDI port.
+        midi_out: String,
+        /// The address and port on which to listen for OSC via UDP.
+        osc_in_addr: SocketAddr,
+        /// The addresses from which to accept OSC and to which OSC will be
+        /// sent.
+        osc_out_addrs: Vec<SocketAddr>,
+    },
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+
+#[async_std::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    stderrlog::new().verbosity(LogLevelNum::Debug).init().unwrap();
+
     let cli = Cli::parse();
     match &cli.command {
         Some(Commands::List {}) => Ok(list_ports()),
@@ -45,17 +66,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             in_port_name,
             out_port_name,
         }) => list_bcontrols(in_port_name, out_port_name),
+        Some(Commands::Serve {
+            midi_in,
+            midi_out,
+            osc_in_addr,
+            osc_out_addrs,
+        }) => {
+            let svc = 
+                osc_service::start(midi_in, midi_out, osc_in_addr, osc_out_addrs)
+                    .await?;
+            wait_for_user()?;
+            svc.stop().await;
+            Ok(())
+        }
         None => Ok(()),
-    }
-}
-
-fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port, Box<dyn Error>> {
-    let ports = midi_io.ports();
-    let wanted = Ok(port_name.to_string());
-    let port = ports.iter().find(|&x| midi_io.port_name(&x) == wanted);
-    match port {
-        Some(p) => Ok(p.clone()),
-        None => Err("MIDI port not found".into()),
     }
 }
 
@@ -92,10 +116,15 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
         },
         (),
     )?;
-    println!("Connection open, reading input from '{port_name}'. Press Enter to exit.");
+    println!("Connection open, reading input from '{port_name}'.");
+    wait_for_user()?;
+    Ok(())
+}
+
+fn wait_for_user() -> Result<(), Box<dyn Error>> {
+    println!("Press Enter to exit.");
     let mut input = String::new();
     stdin().read_line(&mut input)?;
-    println!("Closing connection");
     Ok(())
 }
 
@@ -138,7 +167,7 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
 
     let bdata = BControlSysEx {
         device: DeviceID::Device(0),
-        model: BControlModel::BCR,
+        model: Some(BControlModel::BCR),
         command: BControlCommand::RequestIdentity,
     }
     .to_midi();

@@ -19,7 +19,7 @@ pub const BEHRINGER: ManufacturerID = ManufacturerID(0x20u8, Some(0x32u8));
 #[derive(Debug, PartialEq, Eq)]
 pub struct BControlSysEx {
     pub device: DeviceID,
-    pub model: BControlModel,
+    pub model: Option<BControlModel>,
     pub command: BControlCommand,
 }
 
@@ -35,9 +35,9 @@ impl BControlSysEx {
             DeviceID::AllCall => 0x7f,
         });
         v.push(match self.model {
-            BControlModel::BCR => 0x15,
-            BControlModel::BCF => 0x14,
-            BControlModel::Any => 0x7f,
+            Some(BControlModel::BCR) => 0x15,
+            Some(BControlModel::BCF) => 0x14,
+            None => 0x7f,
         });
         self.command.extend_midi(v);
     }
@@ -49,9 +49,9 @@ impl BControlSysEx {
                 n => return Err(ParseError::Invalid(format!("Invalid device id. ({n})"))),
             };
             let model = match m[1] {
-                0x14 => BControlModel::BCF,
-                0x15 => BControlModel::BCR,
-                0x7f => BControlModel::Any,
+                0x14 => Some(BControlModel::BCF),
+                0x15 => Some(BControlModel::BCR),
+                0x7f => None,
                 n => {
                     return Err(ParseError::Invalid(format!(
                         "Bad B-Control model number. ({n:x})"
@@ -145,7 +145,6 @@ impl BControlSysEx {
 pub enum BControlModel {
     BCR,
     BCF,
-    Any,
 }
 
 /// B-Control command data appears in system exclusive messages sent to or
