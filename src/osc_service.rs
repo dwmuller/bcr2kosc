@@ -12,7 +12,7 @@ use async_std::net::SocketAddr;
 use async_std::stream::StreamExt;
 use async_std::sync::{Arc, Condvar, Mutex};
 use async_std::task;
-use log::info;
+use log::{info, warn};
 use midi_msg::MidiMsg;
 use midir::{MidiInput, MidiInputPort};
 use std::error::Error;
@@ -98,12 +98,18 @@ async fn run_osc_listener(pair: Arc<(Mutex<bool>, Condvar)>, mut osc_in_sock: Os
         let stop = async_std::prelude::FutureExt::race(
             async { *cvar.wait_until(lock.lock().await, |stop| *stop).await },
             async {
-                if let Some(packet) = osc_in_sock.next().await {
-                    if let Ok((packet, peer_addr)) = packet {
+                match osc_in_sock.next().await {
+                    Some(Ok((packet, peer_addr))) => {
                         task::spawn(handle_osc_pkt(packet, peer_addr));
+                        false
                     }
+                    None => {
+                        warn!("OSC input socket was closed.");
+                        true},
+                    Some(stuff) => {
+                        warn!("Unrecognized OSC input: {stuff:?}");
+                        false},
                 }
-                false
             },
         )
         .await;
