@@ -1,9 +1,10 @@
+use async_std::task::sleep;
 use clap::{Parser, Subcommand};
 use log::info;
-use stderrlog::LogLevelNum;
 use std::io::stdin;
 use std::time::Duration;
 use std::{error::Error, net::SocketAddr};
+use stderrlog::LogLevelNum;
 
 use midi_msg::{MidiMsg, SystemExclusiveMsg};
 use midir::{MidiIO, MidiInput, MidiOutput};
@@ -54,10 +55,12 @@ enum Commands {
     },
 }
 
-
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    stderrlog::new().verbosity(LogLevelNum::Debug).init().unwrap();
+    stderrlog::new()
+        .verbosity(LogLevelNum::Debug)
+        .init()
+        .unwrap();
 
     let cli = Cli::parse();
     match &cli.command {
@@ -73,11 +76,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             osc_in_addr,
             osc_out_addrs,
         }) => {
-            let svc = 
-                osc_service::start(midi_in, midi_out, osc_in_addr, osc_out_addrs)
-                    .await?;
+            let svc = osc_service::start(midi_in, midi_out, osc_in_addr, osc_out_addrs).await?;
             wait_for_user()?;
             svc.stop().await;
+            sleep(Duration::from_secs(1)).await;
             info!("Stopped.");
             Ok(())
         }

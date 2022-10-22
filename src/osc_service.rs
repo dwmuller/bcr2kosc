@@ -87,22 +87,28 @@ async fn run_midi_listener(
         )
         .expect("MIDI input port should have allowed a connection");
     let (lock, cvar) = &*pair;
-    let mut stopping = lock.lock().await;
-    while !*stopping {
-        stopping = cvar.wait(stopping).await;
-    }
+    cvar.wait_until(lock.lock().await, |stopping| *stopping)
+        .await;
     info!("MIDI listener stopped.")
 }
 
 async fn run_osc_listener(pair: Arc<(Mutex<bool>, Condvar)>, mut osc_in_sock: OscSocket) {
     let (lock, cvar) = &*pair;
-    let mut stopping = lock.lock().await;
-    while !*stopping {
-                stopping = cvar.wait(stopping).await;
-        if let Some(packet) = osc_in_sock.next().await {
-            if let Ok((packet, peer_addr)) = packet {
-                task::spawn(handle_osc_pkt(packet, peer_addr));
-            }
+    loop {
+        let stop = async_std::prelude::FutureExt::race(
+            async { *cvar.wait_until(lock.lock().await, |stop| *stop).await },
+            async {
+                if let Some(packet) = osc_in_sock.next().await {
+                    if let Ok((packet, peer_addr)) = packet {
+                        task::spawn(handle_osc_pkt(packet, peer_addr));
+                    }
+                }
+                false
+            },
+        )
+        .await;
+        if stop {
+            break;
         }
     }
     info!("OSC listener stopped.");
