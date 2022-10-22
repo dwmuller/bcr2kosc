@@ -1,0 +1,47 @@
+
+Design notes on B-Control OSC address space:
+
+Probably best to use paths related to physical layout of controller. The
+.ReaperOSC files make clear the purpose, and mapping to the paths that emphasize
+the physical layout will make design of that file most intuitive.
+
+Using terminology from the Behringer docs where applicable.
+
+# Metadata
+
+Maybe. Still thinking about this. Requires statefulness, or expensive queries to
+derive each time.
+
+OSC pattern                 range
+/push-encoder/count         [1-32]
+/key/count                  16
+/user/count                 4
+/group/count                {1,2,4}
+/footswitch/count           [1-2]
+
+# Buttons
+
+Function keys have BCL control numbers 53-56, but don't send or receive data.
+
+OSC pattern                          BCL#
+/push-encoder/[1-32]/button           1-32   egroup range varies
+/key/[1-16]                          33-48  
+/user/[1-4]                          49-52  button group lower right
+/group/[1-4]                         57-60  available based on egroups #
+/footswitch/[1-2]                    61-62  BCF has only one
+
+# Encoders
+
+OSC pattern                          BCL#
+/push-encoder/[1-32]/encoder          1-32   egroup range varies
+/encoder/[1-24]                      33-56   BCR only
+
+# Faders
+/fader/[1-9]                          0-8    BCF only, 9 is foot input
+
+
+rosc has a Matcher class, but it's not very well thought out. You can only ask a
+Matcher if a given address matches its pattern; you get no information about the
+varying matched parts. Seems smarter to translate patterns to regexes.
+
+Patterns arrive in messages.
