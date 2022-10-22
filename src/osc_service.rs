@@ -7,18 +7,18 @@
 //! An OSC client listens for MIDI/BCL messages from a BCR2000, translates them
 //! to OSC packets, and sends them to a configured UDP port.
 
+use async_osc::{OscPacket, OscSocket};
+use async_std::net::SocketAddr;
+use async_std::stream::StreamExt;
+use async_std::sync::{Arc, Condvar, Mutex};
+use async_std::task;
+use log::info;
 use midi_msg::MidiMsg;
 use midir::{MidiInput, MidiInputPort};
 use std::error::Error;
 
 use crate::midi_util::*;
 use crate::PGM;
-use async_osc::{OscPacket, OscSocket};
-use async_std::net::SocketAddr;
-use async_std::stream::StreamExt;
-use async_std::sync::{Arc, Condvar, Mutex};
-use async_std::task::spawn;
-use log::{info};
 
 pub struct BCtlOscSvc {
     pair: Arc<(Mutex<bool>, Condvar)>,
@@ -45,9 +45,12 @@ pub async fn start(
         let midi_input_port = find_port(&midi_input, midi_in_port_name)?;
         // TODO
         //let osc_out_sock = OscSocket::bind("127.0.0.1:0").await?;
-        spawn(async move {
-            run_midi_listener(pair, midi_input, midi_input_port).await;
-        });
+        task::Builder::new()
+            .name("MIDI listener task".to_string())
+            .spawn(async move {
+                run_midi_listener(pair, midi_input, midi_input_port).await;
+            })
+            .unwrap();
     }
     {
         let pair = pair.clone();
@@ -55,9 +58,12 @@ pub async fn start(
         // TODO
         //let midi_output = MidiOutput::new(&format!("{PGM} feedback to B-Control"))?;
         //let midi_output_port = find_port(&midi_output, midi_out_port_name)?;
-        spawn(async move {
-            run_osc_listener(pair, osc_in_sock).await;
-        });
+        task::Builder::new()
+            .name("OSC listener task".to_string())
+            .spawn(async move {
+                run_osc_listener(pair, osc_in_sock).await;
+            })
+            .unwrap();
     }
     Ok(BCtlOscSvc { pair })
 }
@@ -73,7 +79,7 @@ async fn run_midi_listener(
             "{PGM} listener",
             move |t, m, _| {
                 let mc = m.to_vec();
-                spawn(async move {
+                task::spawn(async move {
                     handle_midi_msg(t, mc).await;
                 });
             },
@@ -85,19 +91,21 @@ async fn run_midi_listener(
     while !*stopping {
         stopping = cvar.wait(stopping).await;
     }
+    info!("MIDI listener stopped.")
 }
 
 async fn run_osc_listener(pair: Arc<(Mutex<bool>, Condvar)>, mut osc_in_sock: OscSocket) {
     let (lock, cvar) = &*pair;
     let mut stopping = lock.lock().await;
     while !*stopping {
-        stopping = cvar.wait(stopping).await;
+                stopping = cvar.wait(stopping).await;
         if let Some(packet) = osc_in_sock.next().await {
             if let Ok((packet, peer_addr)) = packet {
-                spawn(handle_osc_pkt(packet, peer_addr));
+                task::spawn(handle_osc_pkt(packet, peer_addr));
             }
         }
     }
+    info!("OSC listener stopped.");
 }
 
 async fn handle_osc_pkt(pkt: OscPacket, sender: SocketAddr) {

@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use log::info;
 use stderrlog::LogLevelNum;
 use std::io::stdin;
 use std::time::Duration;
@@ -77,6 +78,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     .await?;
             wait_for_user()?;
             svc.stop().await;
+            info!("Stopped.");
             Ok(())
         }
         None => Ok(()),
