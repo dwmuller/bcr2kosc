@@ -15,6 +15,7 @@ use b_control::*;
 mod midi_util;
 use midi_util::*;
 mod osc_service;
+use osc_service::*;
 
 pub const PGM: &str = "bcr2kosc";
 
@@ -76,7 +77,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             osc_in_addr,
             osc_out_addrs,
         }) => {
-            let svc = osc_service::start(midi_in, midi_out, osc_in_addr, osc_out_addrs).await?;
+            let svc = BCtlOscSvc::new(midi_in, midi_out, osc_in_addr, osc_out_addrs);
+            svc.start().await?;
             wait_for_user()?;
             svc.stop().await;
             sleep(Duration::from_secs(1)).await;
