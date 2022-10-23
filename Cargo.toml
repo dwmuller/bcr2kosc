@@ -13,7 +13,7 @@ exitcode = "1.1.2"
 midi-msg = "0.4.0"
 async-osc = "0.2.0"
 async-std = { version = "1.12.0", features = ["attributes"] }
-futures = "0.3.24"
 log = "0.4.17"
 stderrlog = "0.5.3"
+futures-lite = "1.12.0"
 

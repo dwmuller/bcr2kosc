@@ -11,7 +11,8 @@ use async_osc::{OscPacket, OscSocket};
 use async_std::net::SocketAddr;
 use async_std::stream::StreamExt;
 use async_std::sync::{Arc, Condvar, Mutex};
-use async_std::task;
+use async_std::task::{self, JoinHandle};
+
 use log::{info, warn};
 use midi_msg::MidiMsg;
 use midir::{MidiInput, MidiInputPort};
@@ -27,6 +28,7 @@ pub struct BCtlOscSvc {
     pub osc_out_addrs: Vec<SocketAddr>,
 
     stop_sentinel: Arc<(Mutex<bool>, Condvar)>,
+    spawned_tasks: Vec<JoinHandle<()>>,
 }
 impl BCtlOscSvc {
     pub fn new(
@@ -41,29 +43,37 @@ impl BCtlOscSvc {
             osc_in_addr: osc_in_addr.clone(),
             osc_out_addrs: osc_out_addrs.to_vec(),
             stop_sentinel: Arc::new((Mutex::new(false), Condvar::new())),
+            spawned_tasks: Vec::new(),
         }
     }
 
-    pub async fn stop(self) {
+    pub async fn stop(mut self) {
         let (lock, cvar) = &*self.stop_sentinel;
-        let mut stopping = lock.lock().await;
-        *stopping = true;
-        cvar.notify_all();
+        {
+            let mut stopping = lock.lock().await;
+            *stopping = true;
+            cvar.notify_all();
+        }
+        for ele in self.spawned_tasks.drain(0..) {
+            ele.await;
+        }
     }
 
-    pub async fn start(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
         {
             let pair = self.stop_sentinel.clone();
             let midi_input = MidiInput::new(&format!("{PGM} listening to B-Control"))?;
             let midi_input_port = find_port(&midi_input, &self.midi_in_port_name)?;
             // TODO
             //let osc_out_sock = OscSocket::bind("127.0.0.1:0").await?;
-            task::Builder::new()
-                .name("MIDI listener task".to_string())
-                .spawn(async move {
-                    Self::run_midi_listener(pair, midi_input, midi_input_port).await;
-                })
-                .unwrap();
+            self.spawned_tasks.push(
+                task::Builder::new()
+                    .name("MIDI listener task".to_string())
+                    .spawn(async move {
+                        Self::run_midi_listener(pair, midi_input, midi_input_port).await;
+                    })
+                    .unwrap(),
+            );
         }
         {
             let pair = self.stop_sentinel.clone();
@@ -71,12 +81,14 @@ impl BCtlOscSvc {
             // TODO
             //let midi_output = MidiOutput::new(&format!("{PGM} feedback to B-Control"))?;
             //let midi_output_port = find_port(&midi_output, self.midi_out_port_name)?;
-            task::Builder::new()
-                .name("OSC listener task".to_string())
-                .spawn(async move {
-                    Self::run_osc_listener(pair, osc_in_sock).await;
-                })
-                .unwrap();
+            self.spawned_tasks.push(
+                task::Builder::new()
+                    .name("OSC listener task".to_string())
+                    .spawn(async move {
+                        Self::run_osc_listener(pair, osc_in_sock).await;
+                    })
+                    .unwrap(),
+            );
         }
         Ok(())
     }

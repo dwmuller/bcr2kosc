@@ -1,4 +1,3 @@
-use async_std::task::sleep;
 use clap::{Parser, Subcommand};
 use log::info;
 use std::io::stdin;
@@ -77,11 +76,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             osc_in_addr,
             osc_out_addrs,
         }) => {
-            let svc = BCtlOscSvc::new(midi_in, midi_out, osc_in_addr, osc_out_addrs);
+            let mut svc = BCtlOscSvc::new(midi_in, midi_out, osc_in_addr, osc_out_addrs);
             svc.start().await?;
             wait_for_user()?;
             svc.stop().await;
-            sleep(Duration::from_secs(1)).await;
             info!("Stopped.");
             Ok(())
         }
