@@ -11,7 +11,7 @@ use async_osc::{OscPacket, OscSocket};
 use async_std::net::SocketAddr;
 use async_std::stream::StreamExt;
 use async_std::sync::{Arc, Condvar, Mutex};
-use async_std::task::{self, JoinHandle};
+use async_std::task::{self, spawn, JoinHandle};
 
 use log::{info, warn};
 use midi_msg::MidiMsg;
@@ -27,7 +27,7 @@ pub struct BCtlOscSvc {
     pub osc_in_addr: SocketAddr,
     pub osc_out_addrs: Vec<SocketAddr>,
 
-    stop_sentinel: Arc<(Mutex<bool>, Condvar)>,
+    running: Arc<(Mutex<bool>, Condvar)>,
     spawned_tasks: Vec<JoinHandle<()>>,
 }
 impl BCtlOscSvc {
@@ -42,59 +42,52 @@ impl BCtlOscSvc {
             midi_out_port_name: midi_out_port_name.to_string(),
             osc_in_addr: osc_in_addr.clone(),
             osc_out_addrs: osc_out_addrs.to_vec(),
-            stop_sentinel: Arc::new((Mutex::new(false), Condvar::new())),
+            running: Arc::new((Mutex::new(false), Condvar::new())),
             spawned_tasks: Vec::new(),
         }
     }
 
-    pub async fn stop(mut self) {
-        let (lock, cvar) = &*self.stop_sentinel;
-        {
-            let mut stopping = lock.lock().await;
-            *stopping = true;
-            cvar.notify_all();
-        }
-        for ele in self.spawned_tasks.drain(0..) {
-            ele.await;
-        }
-    }
-
     pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
+        (*self.running.0.lock().await) = true;
         {
-            let pair = self.stop_sentinel.clone();
+            let running = self.running.clone();
             let midi_input = MidiInput::new(&format!("{PGM} listening to B-Control"))?;
             let midi_input_port = find_port(&midi_input, &self.midi_in_port_name)?;
             // TODO
             //let osc_out_sock = OscSocket::bind("127.0.0.1:0").await?;
-            self.spawned_tasks.push(
-                task::Builder::new()
-                    .name("MIDI listener task".to_string())
-                    .spawn(async move {
-                        Self::run_midi_listener(pair, midi_input, midi_input_port).await;
-                    })
-                    .unwrap(),
-            );
+            self.spawned_tasks.push(spawn(async move {
+                Self::run_midi_listener(running, midi_input, midi_input_port).await;
+            }));
         }
         {
-            let pair = self.stop_sentinel.clone();
+            let running = self.running.clone();
             let osc_in_sock = OscSocket::bind(self.osc_in_addr).await?;
             // TODO
             //let midi_output = MidiOutput::new(&format!("{PGM} feedback to B-Control"))?;
             //let midi_output_port = find_port(&midi_output, self.midi_out_port_name)?;
-            self.spawned_tasks.push(
-                task::Builder::new()
-                    .name("OSC listener task".to_string())
-                    .spawn(async move {
-                        Self::run_osc_listener(pair, osc_in_sock).await;
-                    })
-                    .unwrap(),
-            );
+            self.spawned_tasks.push(spawn(async move {
+                Self::run_osc_listener(running, osc_in_sock).await;
+            }));
         }
         Ok(())
     }
 
+    pub async fn stop(&mut self) {
+        let (lock, cvar) = &*self.running;
+        {
+            let mut running = lock.lock().await;
+            *running = false;
+            cvar.notify_all();
+        }
+        for ele in self.spawned_tasks.drain(0..) {
+            // Seems to pend if the task completed. Might have to live with
+            // .cancel instead if this becomes a problem.
+            ele.await;
+        }
+    }
+
     async fn run_midi_listener(
-        pair: Arc<(Mutex<bool>, Condvar)>,
+        running: Arc<(Mutex<bool>, Condvar)>,
         midi_input: MidiInput,
         midi_input_port: MidiInputPort,
     ) {
@@ -111,38 +104,35 @@ impl BCtlOscSvc {
                 (),
             )
             .expect("MIDI input port should have allowed a connection");
-        let (lock, cvar) = &*pair;
-        cvar.wait_until(lock.lock().await, |stopping| *stopping)
+        let (lock, cvar) = &*running;
+        cvar.wait_until(lock.lock().await, |running| !*running)
             .await;
         info!("MIDI listener stopped.")
     }
 
-    async fn run_osc_listener(pair: Arc<(Mutex<bool>, Condvar)>, mut osc_in_sock: OscSocket) {
-        let (lock, cvar) = &*pair;
-        loop {
-            let stop = async_std::prelude::FutureExt::race(
-                async { *cvar.wait_until(lock.lock().await, |stop| *stop).await },
+    async fn run_osc_listener(running: Arc<(Mutex<bool>, Condvar)>, mut osc_in_sock: OscSocket) {
+        let (lock, cvar) = &*running;
+        let mut run = *lock.lock().await;
+        while run {
+            async_std::prelude::FutureExt::race(
+                async {
+                    run = *cvar.wait_until(lock.lock().await, |r| !*r).await;
+                },
                 async {
                     match osc_in_sock.next().await {
                         Some(Ok((packet, peer_addr))) => {
                             task::spawn(Self::handle_osc_pkt(packet, peer_addr));
-                            false
                         }
                         None => {
                             warn!("OSC input socket was closed.");
-                            true
                         }
                         Some(stuff) => {
                             warn!("Unrecognized OSC input: {stuff:?}");
-                            false
                         }
-                    }
+                    };
                 },
             )
             .await;
-            if stop {
-                break;
-            }
         }
         info!("OSC listener stopped.");
     }
