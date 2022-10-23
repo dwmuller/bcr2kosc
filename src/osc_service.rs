@@ -7,14 +7,14 @@
 //! An OSC client listens for MIDI/BCL messages from a BCR2000, translates them
 //! to OSC packets, and sends them to a configured UDP port.
 
-use async_osc::{OscPacket, OscSocket};
+use async_osc::{OscMessage, OscPacket, OscSender, OscSocket, OscType};
 use async_std::net::SocketAddr;
 use async_std::stream::StreamExt;
 use async_std::sync::{Arc, Condvar, Mutex};
 use async_std::task::{self, spawn, JoinHandle};
 
-use log::{info, warn};
-use midi_msg::MidiMsg;
+use log::{error, info, warn};
+use midi_msg::{Channel, ChannelVoiceMsg, ControlChange, MidiMsg};
 use midir::{MidiInput, MidiInputPort};
 use std::error::Error;
 
@@ -25,7 +25,7 @@ pub struct BCtlOscSvc {
     pub midi_in_port_name: String,
     pub midi_out_port_name: String,
     pub osc_in_addr: SocketAddr,
-    pub osc_out_addrs: Vec<SocketAddr>,
+    pub osc_out_addrs: Arc<Vec<SocketAddr>>,
 
     running: Arc<(Mutex<bool>, Condvar)>,
     spawned_tasks: Vec<JoinHandle<()>>,
@@ -41,7 +41,7 @@ impl BCtlOscSvc {
             midi_in_port_name: midi_in_port_name.to_string(),
             midi_out_port_name: midi_out_port_name.to_string(),
             osc_in_addr: osc_in_addr.clone(),
-            osc_out_addrs: osc_out_addrs.to_vec(),
+            osc_out_addrs: Arc::new(osc_out_addrs.to_vec()),
             running: Arc::new((Mutex::new(false), Condvar::new())),
             spawned_tasks: Vec::new(),
         }
@@ -53,10 +53,18 @@ impl BCtlOscSvc {
             let running = self.running.clone();
             let midi_input = MidiInput::new(&format!("{PGM} listening to B-Control"))?;
             let midi_input_port = find_port(&midi_input, &self.midi_in_port_name)?;
+            let osc_out_addrs = self.osc_out_addrs.clone();
             // TODO
-            //let osc_out_sock = OscSocket::bind("127.0.0.1:0").await?;
+            let osc_out_sock = OscSocket::bind("127.0.0.1:0").await?;
             self.spawned_tasks.push(spawn(async move {
-                Self::run_midi_listener(running, midi_input, midi_input_port).await;
+                Self::run_midi_listener(
+                    running,
+                    midi_input,
+                    midi_input_port,
+                    osc_out_sock,
+                    osc_out_addrs,
+                )
+                .await;
             }));
         }
         {
@@ -90,6 +98,8 @@ impl BCtlOscSvc {
         running: Arc<(Mutex<bool>, Condvar)>,
         midi_input: MidiInput,
         midi_input_port: MidiInputPort,
+        osc_out_sock: OscSocket,
+        osc_out_addrs: Arc<Vec<SocketAddr>>,
     ) {
         let midi_input_cxn = midi_input
             .connect(
@@ -97,8 +107,10 @@ impl BCtlOscSvc {
                 "{PGM} listener",
                 move |t, m, _| {
                     let mc = m.to_vec();
+                    let os = osc_out_sock.sender();
+                    let oa = osc_out_addrs.clone();
                     task::spawn(async move {
-                        Self::handle_midi_msg(t, mc).await;
+                        Self::handle_midi_msg(t, mc, os, oa).await;
                     });
                 },
                 (),
@@ -141,11 +153,46 @@ impl BCtlOscSvc {
         info!("{pkt:?}"); // process OSC packet
     }
 
-    async fn handle_midi_msg(timestamp: u64, m: Vec<u8>) {
+    async fn handle_midi_msg(
+        timestamp: u64,
+        m: Vec<u8>,
+        osc_sender: OscSender,
+        osc_out_addrs: Arc<Vec<SocketAddr>>,
+    ) {
         let midi_msg = MidiMsg::from_midi(&m);
         info!("{midi_msg:?}");
         // TODO:
         // - Figure out if the msg is relevant.
         // - Dispatch to all targeted OSC services.
+        let osc_msg = match midi_msg {
+            Ok((
+                MidiMsg::ChannelVoice {
+                    channel: Channel::Ch1,
+                    msg:
+                        ChannelVoiceMsg::ControlChange {
+                            control: ControlChange::TogglePortamento(val),
+                        },
+                },
+                len,
+            )) => Some(OscMessage {
+                addr: "/key/1".to_string(),
+                args: [OscType::Int(if val { 1 } else { 0 })].to_vec(),
+            }),
+            Ok(_) => None,
+            Err(e) => {
+                error!("{}", e);
+                None
+            }
+        };
+        if osc_msg.is_some() {
+            info!("{:?}", osc_msg);
+            let osc_message = osc_msg.unwrap();
+            let pkt = OscPacket::Message(osc_message);
+            for a in &*osc_out_addrs {
+                if let Err(e) = osc_sender.send_to(pkt.clone(), a).await {
+                    error!("{}", e);
+                };
+            }
+        }
     }
 }
