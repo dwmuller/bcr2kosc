@@ -16,4 +16,5 @@ async-std = { version = "1.12.0", features = ["attributes"] }
 log = "0.4.17"
 stderrlog = "0.5.3"
 futures-lite = "1.12.0"
+rosc = "0.9.1"
 
