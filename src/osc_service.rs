@@ -7,7 +7,7 @@
 //! An OSC client listens for MIDI/BCL messages from a BCR2000, translates them
 //! to OSC packets, and sends them to a configured UDP port.
 
-use async_osc::{OscMessage, OscPacket, OscSender, OscSocket, OscType};
+use async_osc::{OscPacket, OscSender, OscSocket};
 use async_std::channel::{self, Sender};
 use async_std::net::SocketAddr;
 use async_std::stream::StreamExt;
@@ -15,13 +15,12 @@ use async_std::sync::{Arc, Condvar, Mutex};
 use async_std::task::{self, spawn, JoinHandle};
 
 use log::{error, info, warn};
-use midi_msg::{Channel, ChannelVoiceMsg, ControlChange, MidiMsg};
 use midir::{MidiInput, MidiInputPort, MidiOutput, MidiOutputPort};
-use rosc::address::{Matcher, OscAddress};
 use std::error::Error;
 
 use crate::midi_util::*;
 use crate::PGM;
+use crate::translator::{osc_pkt_to_midi, midi_to_osc};
 
 pub struct BCtlOscSvc {
     pub midi_in_port_name: String,
@@ -203,16 +202,8 @@ async fn handle_midi_msg(
     osc_sender: OscSender,
     osc_out_addrs: Arc<Vec<SocketAddr>>,
 ) {
-    let midi_msg = MidiMsg::from_midi(&m);
-    let osc_pkt = match &midi_msg {
-        Ok((m, _len)) => midi_to_osc(m),
-        Err(e) => {
-            error!("{e:?}");
-            None
-        }
-    };
+    let osc_pkt = midi_to_osc(&m);
     if osc_pkt.is_some() {
-        info!("Parsed and translated this MIDI msg:\n{midi_msg:#?}");
         let pkt = osc_pkt.unwrap();
         info!("Sending this OSC packet:\n {pkt:#?}");
         for a in &*osc_out_addrs {
@@ -223,69 +214,3 @@ async fn handle_midi_msg(
     }
 }
 
-fn midi_to_osc(m: &MidiMsg) -> Option<OscPacket> {
-    match m {
-        MidiMsg::ChannelVoice {
-            channel: Channel::Ch1,
-            msg:
-                ChannelVoiceMsg::ControlChange {
-                    control: ControlChange::TogglePortamento(val),
-                },
-        } => Some(OscPacket::Message(OscMessage {
-            addr: "/key/1".to_string(),
-            args: [OscType::Int(if *val { 1 } else { 0 })].to_vec(),
-        })),
-        _ => None,
-    }
-}
-
-fn osc_pkt_to_midi(op: &OscPacket, out: &mut Vec<u8>) {
-    match op {
-        OscPacket::Message(m) => osc_msg_to_midi(m, out),
-        OscPacket::Bundle(b) => {
-            for p in &b.content {
-                osc_pkt_to_midi(p, out);
-            }
-        }
-    }
-}
-fn osc_msg_to_midi(om: &OscMessage, out: &mut Vec<u8>) {
-    let test_osc = OscAddress::new("/key/1".to_string()).unwrap();
-    let matcher = Matcher::new(&om.addr);
-    if matcher.is_err() {
-        error!(
-            "Failed to create OSC matcher for incoming address: {}",
-            &om.addr
-        );
-        return;
-    }
-    let matcher = matcher.unwrap();
-    if matcher.match_address(&test_osc) {
-        let state = match om.args[0] {
-            OscType::Float(v) => {
-                if v == 0.0 {
-                    Some(false)
-                } else if v == 1.0 {
-                    Some(true)
-                } else {
-                    None
-                }
-            }
-            //| OscType::Float(v) | OscType::Long(v) | OscType::Double(v) =>
-            //match v {0 => Some(false), 1 => Some(true) },
-            OscType::Bool(v) => Some(v),
-            _ => None,
-        };
-        if state.is_none() {
-            error!("Unable to decode OSC arg: {om:#?}");
-        } else {
-            let midi_msg = MidiMsg::ChannelVoice {
-                channel: Channel::Ch1,
-                msg: ChannelVoiceMsg::ControlChange {
-                    control: ControlChange::TogglePortamento(state.unwrap()),
-                },
-            };
-            midi_msg.extend_midi(out);
-        }
-    }
-}

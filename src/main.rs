@@ -15,6 +15,7 @@ mod midi_util;
 use midi_util::*;
 mod osc_service;
 use osc_service::*;
+mod translator;
 
 pub const PGM: &str = "bcr2kosc";
 

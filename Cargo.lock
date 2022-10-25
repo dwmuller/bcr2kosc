@@ -121,7 +121,7 @@ dependencies = [
  "async-std",
  "futures-lite",
  "log",
- "rosc",
+ "rosc 0.4.3",
  "thiserror",
 ]
 
@@ -212,6 +212,7 @@ dependencies = [
  "log",
  "midi-msg",
  "midir",
+ "rosc 0.9.1",
  "stderrlog",
 ]
 
@@ -660,6 +661,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "minimal-lexical"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
 name = "nix"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -670,6 +677,16 @@ dependencies = [
  "cfg-if",
  "libc",
  "memoffset",
+]
+
+[[package]]
+name = "nom"
+version = "7.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8903e5a29a317527874d0402f867152a3d21c908bb0b933e416c65e301d4c36"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
 ]
 
 [[package]]
@@ -790,6 +807,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4705e1f4b2b1dc25f5a07b6cf82315a8d114a244700434b9fd5d62070e5cbd4f"
 dependencies = [
  "byteorder",
+]
+
+[[package]]
+name = "rosc"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10b751c26b740b6e8c37df88d2aa04dd4ea0f5a592ddd15ab21707ff925575dd"
+dependencies = [
+ "byteorder",
+ "nom",
 ]
 
 [[package]]
