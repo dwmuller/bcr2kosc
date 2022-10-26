@@ -182,10 +182,10 @@ async fn handle_osc_pkt(pkt: OscPacket, out: Sender<Vec<u8>>) {
     let mut midi: Vec<u8> = Vec::new();
     osc_pkt_to_midi(&pkt, &mut midi);
     if midi.is_empty() {
-        info!("Ignored OSC packet:\n {pkt:#?}")
+        info!("Ignored OSC packet: {pkt:?}")
     } else {
         let len = midi.len();
-        info!("Translated OSC packet to {len} bytes of MIDI:\n{pkt:#?}");
+        info!("Translated OSC packet to {len} bytes of MIDI: {pkt:?}");
         out.send(midi)
             .await
             .or_else(|e| {
@@ -205,7 +205,7 @@ async fn handle_midi_msg(
     let osc_pkt = midi_to_osc(&m);
     if osc_pkt.is_some() {
         let pkt = osc_pkt.unwrap();
-        info!("Sending this OSC packet:\n {pkt:#?}");
+        info!("Sending this OSC packet: {pkt:?}");
         for a in &*osc_out_addrs {
             if let Err(e) = osc_sender.send_to(pkt.clone(), a).await {
                 error!("{}", e);

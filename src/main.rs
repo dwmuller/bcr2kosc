@@ -1,11 +1,12 @@
 use clap::{Parser, Subcommand};
 use log::info;
+use midi_control::message::SysExType;
+use midi_control::{MidiMessage, SysExEvent};
 use std::io::stdin;
 use std::time::Duration;
 use std::{error::Error, net::SocketAddr};
 use stderrlog::LogLevelNum;
 
-use midi_msg::{MidiMsg, SystemExclusiveMsg};
 use midir::{MidiIO, MidiInput, MidiOutput};
 
 mod b_control;
@@ -115,9 +116,8 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
         &in_port,
         &format!("{PGM} listen connection"),
         move |stamp, msg, _| {
-            if let Ok((midi, _)) = MidiMsg::from_midi(msg) {
-                println!("{stamp}: {midi:?} (len={})", msg.len());
-            }
+            let midi = MidiMessage::from(msg);
+            println!("{stamp}: {midi:?} (len={})", msg.len());
         },
         (),
     )?;
@@ -140,17 +140,11 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
         &in_port,
         in_port_name,
         move |_stamp, midi_data, _context| {
-            let mm = MidiMsg::from_midi(midi_data);
-            if let Ok((
-                MidiMsg::SystemExclusive {
-                    msg:
-                        SystemExclusiveMsg::Commercial {
-                            id: BEHRINGER,
-                            data,
-                        },
-                },
-                _, // unused size of consumed MIDI
-            )) = mm
+            let mm = MidiMessage::from(midi_data);
+            if let MidiMessage::SysEx(SysExEvent {
+                r#type: SysExType::Manufacturer(BEHRINGER),
+                data,
+            }) = mm
             {
                 // Recognized as a Behringer sysex. Parse the sysex payload.
                 let bc = BControlSysEx::from_midi(&data);
@@ -176,13 +170,10 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
         command: BControlCommand::RequestIdentity,
     }
     .to_midi();
-    let req = MidiMsg::SystemExclusive {
-        msg: (SystemExclusiveMsg::Commercial {
-            id: BEHRINGER,
-            data: bdata,
-        }),
-    }
-    .to_midi();
+    let req = Vec::<u8>::from(MidiMessage::SysEx(SysExEvent {
+        r#type: SysExType::Manufacturer(BEHRINGER),
+        data: bdata,
+    }));
     let midi_out = MidiOutput::new(&format!("{PGM} finding B-controls"))?;
     let out_port = find_port(&midi_out, out_port_name)?;
     let mut conn_out = midi_out.connect(&out_port, "{PGM} finding B-controls")?;

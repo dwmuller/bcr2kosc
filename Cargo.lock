@@ -210,7 +210,7 @@ dependencies = [
  "exitcode",
  "futures-lite",
  "log",
- "midi-msg",
+ "midi-control",
  "midir",
  "rosc 0.9.1",
  "stderrlog",
@@ -234,16 +234,6 @@ dependencies = [
  "fastrand",
  "futures-lite",
  "once_cell",
-]
-
-[[package]]
-name = "bstr"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fca0852af221f458706eb0725c03e4ed6c46af9ac98e6a689d5e634215d594dd"
-dependencies = [
- "memchr",
- "serde",
 ]
 
 [[package]]
@@ -628,19 +618,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "micromath"
-version = "1.1.1"
+name = "midi-control"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc4010833aea396656c2f91ee704d51a6f1329ec2ab56ffd00bfd56f7481ea94"
-
-[[package]]
-name = "midi-msg"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc0f9daef29375daef410986c9a81f425b756f6e4ef29af90c25393936037ac6"
+checksum = "1214dcdc0cbf342254de739822da2cffd3c1c2c2b45685d98b80009758920fdf"
 dependencies = [
- "bstr",
- "micromath",
+ "midir",
 ]
 
 [[package]]
@@ -824,12 +807,6 @@ name = "scratch"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8132065adcfd6e02db789d9285a0deb2f3fcb04002865ab67d5fb103533898"
-
-[[package]]
-name = "serde"
-version = "1.0.145"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "728eb6351430bccb993660dfffc5a72f91ccc1295abaa8ce19b27ebe4f75568b"
 
 [[package]]
 name = "signal-hook"

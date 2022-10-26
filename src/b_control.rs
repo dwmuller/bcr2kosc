@@ -8,19 +8,33 @@
 //! used in the midi_msg library crate and uses some types from it.
 //!
 
-use midi_msg::ParseError;
-pub use midi_msg::{DeviceID, ManufacturerID};
+use std::error::Error;
+
+use midi_control::sysex::ManufacturerId;
 
 /// Behringer's MIDI manufacturer ID.
-pub const BEHRINGER: ManufacturerID = ManufacturerID(0x20u8, Some(0x32u8));
+pub const BEHRINGER: ManufacturerId = ManufacturerId::ExtId(0x20u8, 0x32u8);
 
 /// B-Control mode system exclusive data. All system exclusive message data
 /// to or from the BC devices have this structure.
-#[derive(Debug, PartialEq, Eq)]
 pub struct BControlSysEx {
     pub device: DeviceID,
     pub model: Option<BControlModel>,
     pub command: BControlCommand,
+}
+
+/// BControl device number. Each controller can be set to answer queries
+/// addressed to a specific device number, 0 through 15.
+#[derive(Debug, PartialEq, Eq)]
+pub enum DeviceID {
+    /// BC device number, zero through 15.
+    Device(u8),
+    /// BC device number 0x7f, denoting "any".
+    Any,
+}
+type ParseError = Box<dyn Error>;
+fn error<T>(s: &str) -> Result<T, ParseError> {
+    Err(ParseError::from(s))
 }
 
 impl BControlSysEx {
@@ -32,7 +46,7 @@ impl BControlSysEx {
     pub fn extend_midi(&self, v: &mut Vec<u8>) {
         v.push(match self.device {
             DeviceID::Device(d) => d.min(15),
-            DeviceID::AllCall => 0x7f,
+            DeviceID::Any => 0x7f,
         });
         v.push(match self.model {
             Some(BControlModel::BCR) => 0x15,
@@ -45,18 +59,14 @@ impl BControlSysEx {
         if m.len() >= 3 {
             let device = match m[0] {
                 0..=15 => DeviceID::Device(m[0]),
-                0x7f => DeviceID::AllCall,
-                n => return Err(ParseError::Invalid(format!("Invalid device id. ({n})"))),
+                0x7f => DeviceID::Any,
+                n => return error(&format!("invalid device id. ({n})")),
             };
             let model = match m[1] {
                 0x14 => Some(BControlModel::BCF),
                 0x15 => Some(BControlModel::BCR),
                 0x7f => None,
-                n => {
-                    return Err(ParseError::Invalid(format!(
-                        "Bad B-Control model number. ({n:x})"
-                    )))
-                }
+                n => return error(&format!("bad B-Control model number ({n:x})")),
             };
             let (command, used) = match m[2] {
                 0x01 => (BControlCommand::RequestIdentity, 0),
@@ -64,13 +74,13 @@ impl BControlSysEx {
                     BControlCommand::SendIdentity {
                         id_string: string_from_midi(&m[3..])?,
                     },
-                    m.len()-3,
+                    m.len() - 3,
                 ),
                 0x20 => (
                     BControlCommand::SendBclMessage {
                         text: string_from_midi(&m[3..])?,
                     },
-                    m.len()-3,
+                    m.len() - 3,
                 ),
                 0x21 => {
                     if m.len() > 6 {
@@ -80,7 +90,7 @@ impl BControlSysEx {
                                 preset: PresetIndex::from_midi(&m[3..])?,
                                 name: string_from_midi(&m[4..])?,
                             },
-                            m.len()-3,
+                            m.len() - 3,
                         )
                     } else {
                         (
@@ -97,7 +107,7 @@ impl BControlSysEx {
                     BControlCommand::SendFirmware {
                         data: m[3..].to_vec(),
                     },
-                    m.len()-3,
+                    m.len() - 3,
                 ),
                 0x35 => (
                     BControlCommand::FirmwareReply {
@@ -121,11 +131,7 @@ impl BControlSysEx {
                 ),
                 0x43 => (BControlCommand::RequestSnapshot, 0),
                 0x78 => (BControlCommand::SendText, 0),
-                cmd => {
-                    return Err(ParseError::Invalid(format!(
-                        "Invalid B-Control command {cmd:x}"
-                    )))
-                }
+                cmd => return error(&format!("invalid B-Control command {cmd:x}")),
             };
             let result = BControlSysEx {
                 device,
@@ -134,7 +140,7 @@ impl BControlSysEx {
             };
             Ok((result, used + 3))
         } else {
-            Err(ParseError::UnexpectedEnd)
+            error("unexpected end")
         }
     }
 }
@@ -264,7 +270,7 @@ impl PresetIndex {
             0..=31 => Ok(PresetIndex::Preset { index: m[0] }),
             0x7e => Ok(PresetIndex::All),
             0x7f => Ok(PresetIndex::Temporary),
-            n => return Err(ParseError::Invalid(format!("Bad preset index. ({n})"))),
+            n => error(&format!("bad preset index ({n})")),
         }
     }
     fn extend_midi(self, v: &mut Vec<u8>) {
@@ -278,9 +284,9 @@ impl PresetIndex {
 #[inline]
 fn u8_from_midi(m: &[u8]) -> Result<u8, ParseError> {
     if m.is_empty() {
-        Err(ParseError::UnexpectedEnd)
+        error("unexpected end")
     } else if m[0] > 127 {
-        Err(ParseError::ByteOverflow)
+        error("MIDI byte overflow")
     } else {
         Ok(m[0])
     }
@@ -288,11 +294,11 @@ fn u8_from_midi(m: &[u8]) -> Result<u8, ParseError> {
 #[inline]
 fn u14_from_midi_msb_lsb(m: &[u8]) -> Result<u16, ParseError> {
     if m.len() < 2 {
-        Err(ParseError::UnexpectedEnd)
+        error("unexpected end")
     } else {
         let (msb, lsb) = (m[0], m[1]);
         if lsb > 127 || msb > 127 {
-            Err(ParseError::ByteOverflow)
+            error("MIDI byte overflow")
         } else {
             let mut x = lsb as u16;
             x += (msb as u16) << 7;
@@ -304,7 +310,7 @@ fn u14_from_midi_msb_lsb(m: &[u8]) -> Result<u16, ParseError> {
 fn string_from_midi(m: &[u8]) -> Result<String, ParseError> {
     match String::from_utf8(m.to_vec()) {
         Ok(s) => Ok(s),
-        Err(e) => Err(ParseError::Invalid(e.to_string())),
+        Err(e) => error(&format!("invalid string in MIDI, {e:?}")),
     }
 }
 
