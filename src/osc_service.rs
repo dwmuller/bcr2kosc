@@ -7,20 +7,20 @@
 //! An OSC client listens for MIDI/BCL messages from a BCR2000, translates them
 //! to OSC packets, and sends them to a configured UDP port.
 
+use crate::midi_util::*;
+use crate::translator::{midi_to_osc, osc_pkt_to_midi};
+use crate::PGM;
 use async_osc::{OscPacket, OscSender, OscSocket};
-use async_std::channel::{self, Sender};
-use async_std::net::SocketAddr;
-use async_std::stream::StreamExt;
-use async_std::sync::{Arc, Condvar, Mutex};
-use async_std::task::{self, spawn, JoinHandle};
-
+use async_std::sync::{Condvar, Mutex};
+use async_std::task::{spawn, JoinHandle};
+use futures::channel::mpsc::{channel, Receiver, Sender};
+use futures::stream::StreamExt;
+use futures::SinkExt;
 use log::{error, info, warn};
 use midir::{MidiInput, MidiInputPort, MidiOutput, MidiOutputPort};
 use std::error::Error;
-
-use crate::midi_util::*;
-use crate::PGM;
-use crate::translator::{osc_pkt_to_midi, midi_to_osc};
+use std::net::SocketAddr;
+use std::sync::Arc;
 
 pub struct BCtlOscSvc {
     pub midi_in_port_name: String,
@@ -67,7 +67,7 @@ impl BCtlOscSvc {
                 .await;
             }));
         }
-        let (s, r) = channel::bounded(10);
+        let (s, r) = channel(10);
         {
             let running = self.running.clone();
             let osc_in_sock = OscSocket::bind(self.osc_in_addr).await?;
@@ -114,7 +114,7 @@ async fn run_midi_listener(
                 let mc = m.to_vec();
                 let os = osc_out_sock.sender();
                 let oa = osc_out_addrs.clone();
-                task::spawn(async move {
+                spawn(async move {
                     handle_midi_msg(t, mc, os, oa).await;
                 });
             },
@@ -142,7 +142,7 @@ async fn run_osc_listener(
             async {
                 match osc_in_sock.next().await {
                     Some(Ok((packet, _peer_addr))) => {
-                        task::spawn(handle_osc_pkt(packet, output.clone()));
+                        spawn(handle_osc_pkt(packet, output.clone()));
                     }
                     None => {
                         warn!("OSC input socket was closed.");
@@ -159,14 +159,14 @@ async fn run_osc_listener(
 }
 
 async fn run_midi_sender(
-    input: channel::Receiver<Vec<u8>>,
+    mut input: Receiver<Vec<u8>>,
     midi_output: MidiOutput,
     midi_output_port: MidiOutputPort,
 ) {
     let mut midi_output_cxn = midi_output
         .connect(&midi_output_port, &format!("{PGM} sender"))
         .expect("Failed to open MIDI output connection.");
-    while let Ok(midi) = input.recv().await {
+    while let Some(midi) = input.next().await {
         midi_output_cxn
             .send(&midi)
             .or_else(|e| {
@@ -178,7 +178,7 @@ async fn run_midi_sender(
     info!("MIDI sender stopped.")
 }
 
-async fn handle_osc_pkt(pkt: OscPacket, out: Sender<Vec<u8>>) {
+async fn handle_osc_pkt(pkt: OscPacket, mut out: Sender<Vec<u8>>) {
     let mut midi: Vec<u8> = Vec::new();
     osc_pkt_to_midi(&pkt, &mut midi);
     if midi.is_empty() {
@@ -213,4 +213,3 @@ async fn handle_midi_msg(
         }
     }
 }
-

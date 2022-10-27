@@ -17,5 +17,6 @@ stderrlog = "0.5.3"
 futures-lite = "1.12.0"
 rosc = "0.9.1"
 midi-control = "0.2.1"
+futures = "0.3.25"
 
 
