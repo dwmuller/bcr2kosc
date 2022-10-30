@@ -6,13 +6,17 @@
 - Run as Windows service
 
 Necessary:
+
 - Implement bidirection OSC/MIDI mapping.
 - Parse BCL to determine device configuration, generate MIDI-OSC mappings.
 - Figure out how to store/load MIDI-OSC mappings.
+- Review svc object internals, determine if a mutex is needed, and whether or
+  not service tasks are safe if a svc object is dropped without stopping them.
 
 Useful:
 - Read/write config file.
 - Service mode for Windows.
+- Support multiple MIDI input and output ports.
 
 Would be nice:
 - Profile performance.

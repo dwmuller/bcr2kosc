@@ -4,7 +4,7 @@
 //! them to MIDI/BCL messages sent to a BCR2000.
 //!
 //! An OSC client listens for MIDI/BCL messages from a BCR2000, translates them
-//! to OSC packets, and sends them to a configured UDP port.
+//! to OSC packets, and sends them to one or more configured UDP destinations.
 
 use crate::midi_util::find_port;
 use crate::translator::{midi_to_osc, osc_to_midi};
@@ -25,7 +25,17 @@ use tokio::{pin, select, spawn};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::{Stream, StreamExt};
 
+/// Data type used to distribute stop notifications to the various tasks started
+/// by this module. Since there are a variety of ways to do this, it was
+/// convenient to abstract this while experimenting.
 type StopMechanism = Arc<Notify>;
+
+/// Represents the OSC client/server. The start method starts listeners for OSC
+/// and MIDI traffic. The stop method shuts everything down.
+/// 
+/// You should call stop before dropping this object. Otherwise the I/O tasks
+/// will continue running, with no way to stop them.
+///
 pub struct BCtlOscSvc {
     pub midi_in_port_name: String,
     pub midi_out_port_name: String,
@@ -36,6 +46,12 @@ pub struct BCtlOscSvc {
     spawned_tasks: Vec<JoinHandle<()>>,
 }
 impl BCtlOscSvc {
+    /// Create a new B-Control OSC service object.
+    ///
+    /// The MIDI input and output ports should be chosen such that MIDI commands
+    /// will reach your B-Control devices, and replies from the controllers will
+    /// make it back to this service.
+    ///
     pub fn new(
         midi_in_port_name: &str,
         midi_out_port_name: &str,
@@ -52,6 +68,8 @@ impl BCtlOscSvc {
         }
     }
 
+    /// Start the I/O tasks that listen for and respond to OSC and MIDI
+    /// messages.
     pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
         // We use a single UDP socket for sending and receiving.
         let udp_socket = Arc::new(UdpSocket::bind(self.osc_in_addr).await?);
@@ -73,6 +91,8 @@ impl BCtlOscSvc {
         Ok(())
     }
 
+    /// Stop the I/O tasks started by start(). Returns after all tasks have
+    /// terminated.
     pub async fn stop(&mut self) {
         self.stopper.notify_waiters();
         for ele in self.spawned_tasks.drain(0..) {
