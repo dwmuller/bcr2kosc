@@ -1,33 +1,48 @@
-use async_osc::{OscMessage, OscPacket, OscType};
+//! OSC 1.0 supports only these data types: Int, Float, String, Blob, and Time.
+//! Reaper expects Float(1.0) for Boolean true, Float(0.0) for false.
+//! 
+
+use std::iter;
+
+use async_stream::stream;
+use futures::stream::{Stream, StreamExt};
 use log::{error, info};
 use midi_control::*;
 use rosc::address::{Matcher, OscAddress};
+use rosc::{OscMessage, OscPacket, OscType};
 
-pub fn midi_to_osc(m: &[u8]) -> Option<OscPacket> {
-    let midi_msg = MidiMessage::from(m);
 
-    match midi_msg {
-        MidiMessage::ControlChange(
-            Channel::Ch1,
-            ControlEvent {
-                control: 0x41,
-                value,
-            },
-        ) => {
-            info!("Translating this MIDI msg: {midi_msg:?}");
-            Some(OscPacket::Message(OscMessage {
-                addr: "/key/1".to_string(),
-                args: [OscType::Int(value.into())].to_vec(),
-            }))
-        }
-        MidiMessage::Invalid => {
-            error!("Unparsable MIDI input, {} bytes.", m.len());
-            None
-        }
-        _ => {
-            info!("Ignored MIDI msg: {midi_msg:?}");
-            None
-        }
+pub fn midi_to_osc<I: Stream<Item = MidiMessage> + Unpin>(
+    mut midi: I,
+) -> impl Stream<Item = OscPacket> {
+    stream! {
+        while let Some(midi_msg) = midi.next().await {
+        match midi_msg {
+            MidiMessage::ControlChange(
+                Channel::Ch1,
+                ControlEvent {
+                    control: 0x41,
+                    value,
+                },
+            ) => {
+                //info!("Translating this MIDI msg: {midi_msg:?}");
+
+                // Strangely, Reaper wants boolean values as floats, and insists
+                // on "1.0" or "0.0".
+                let value = cv_to_bool(value);
+                yield OscPacket::Message(OscMessage {
+                    addr: "/key/1".to_string(),
+                    args: [OscType::Float(if value {1.0} else {0.0})].to_vec(),
+//                    args: [OscType::Bool(value)].to_vec(),
+                })
+            }
+            MidiMessage::Invalid => {
+                //error!("Invalid MIDI input.");
+            }
+            _ => {
+                info!("Ignored MIDI msg: {midi_msg:?}");
+            }
+        }}
     }
 }
 
@@ -40,17 +55,29 @@ fn bool_to_cv(v: bool) -> u8 {
     }
 }
 
-pub fn osc_pkt_to_midi(op: &OscPacket, out: &mut Vec<u8>) {
-    match op {
-        OscPacket::Message(m) => osc_msg_to_midi(m, out),
-        OscPacket::Bundle(b) => {
-            for p in &b.content {
-                osc_pkt_to_midi(p, out);
-            }
+fn cv_to_bool(v: u8) -> bool {
+    v >= 64
+}
+
+pub fn osc_to_midi<I: Stream<Item = OscPacket> + Unpin>(
+    mut osc: I,
+) -> impl Stream<Item = MidiMessage> {
+    stream! {
+        while let Some(op) = osc.next().await {
+            let i = osc_pkt_to_midi(&op);
+            for m in i {yield m};
         }
     }
 }
-fn osc_msg_to_midi(om: &OscMessage, out: &mut Vec<u8>) {
+
+fn osc_pkt_to_midi(op: &OscPacket) -> Box<dyn Iterator<Item = MidiMessage> + Send + '_> {
+    match op {
+        OscPacket::Message(m) => osc_msg_to_midi(m),
+        OscPacket::Bundle(b) => Box::new(b.content.iter().map(|p| osc_pkt_to_midi(p)).flatten()),
+    }
+}
+
+fn osc_msg_to_midi(om: &OscMessage) -> Box<dyn Iterator<Item = MidiMessage> + Send> {
     let test_osc = OscAddress::new("/key/1".to_string()).unwrap();
     let matcher = Matcher::new(&om.addr);
     if matcher.is_err() {
@@ -58,7 +85,7 @@ fn osc_msg_to_midi(om: &OscMessage, out: &mut Vec<u8>) {
             "Failed to create OSC matcher for incoming address: {}",
             &om.addr
         );
-        return;
+        return Box::new(iter::empty());
     }
     let matcher = matcher.unwrap();
     if matcher.match_address(&test_osc) {
@@ -79,10 +106,15 @@ fn osc_msg_to_midi(om: &OscMessage, out: &mut Vec<u8>) {
         };
         if state.is_none() {
             error!("Unable to decode OSC arg: {om:?}");
+            Box::new(iter::empty())
         } else {
-            let midi_msg = control_change(Channel::Ch1, 0x41, state.unwrap());
-            let mut m = Vec::<u8>::from(midi_msg);
-            out.append(&mut m);
+            Box::new(iter::once(control_change(
+                Channel::Ch1,
+                0x41,
+                state.unwrap(),
+            )))
         }
+    } else {
+        Box::new(iter::empty())
     }
 }

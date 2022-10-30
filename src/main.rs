@@ -57,7 +57,7 @@ enum Commands {
     },
 }
 
-#[async_std::main]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     stderrlog::new()
         .verbosity(LogLevelNum::Debug)
