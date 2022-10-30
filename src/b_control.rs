@@ -24,7 +24,8 @@ pub struct BControlSysEx {
 }
 
 /// BControl device number. Each controller can be set to answer queries
-/// addressed to a specific device number, 0 through 15.
+/// addressed to a specific device number, 0 through 15. In the controller's LCD
+/// display or in UIs, the numbers are usually shown as 1 through 16.
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeviceID {
     /// BC device number, zero through 15.
