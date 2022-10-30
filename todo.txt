@@ -4,4 +4,29 @@
 - BCR preset mgmt
 - Reaper OSC def
 - Run as Windows service
-  - Must be robust to device changes
+
+Necessary:
+- Implement bidirection OSC/MIDI mapping.
+- Parse BCL to determine device configuration, generate MIDI-OSC mappings.
+- Figure out how to store/load MIDI-OSC mappings.
+
+Useful:
+- Read/write config file.
+- Service mode for Windows.
+
+Would be nice:
+- Profile performance.
+  - If warranted, consider other strategies for data flow.
+  - Example: Task per target client.
+  - Example: UDP socket per target client.
+- Security? This is really mainly for use on a safe network.
+- Dynamic client configuration
+  - Maybe auto-discover client based on their read requests.
+- Break parts out as library crates:
+  - BCL/B-Code parser(s)
+  - Runtime-agnostic OSC IO wrappers.
+  - Runtime-agnostic MIDI IO wrappers (possibly as an enhancement to midir).
+- Figure out how different presets can be used.
+  - Maybe preset # should be represented in OSC addresses.
+  - Would have to track controller's curent preset.
+  - Not clear how this would interact with the "scratch" preset.
