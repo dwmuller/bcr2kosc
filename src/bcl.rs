@@ -13,7 +13,7 @@ pub enum BclSection {
     Preset,
     Button,
     Encoder,
-    Fader
+    Fader,
 }
 
 pub struct GlobalData {
@@ -23,7 +23,7 @@ pub struct GlobalData {
     pub rxch: Option<()>,
     pub device_id: Option<()>,
     pub txinterval: Option<()>,
-    pub deadtime: Option<()>
+    pub deadtime: Option<()>,
 }
 
 impl BclBlock {
@@ -34,13 +34,22 @@ impl BclBlock {
             BControlModel::BCR => s += "R",
             BControlModel::BCF => s += "F",
         }
-        if let Some(r) = self.rev {s += &r.to_string()};
-        s .push('\n');
+        if let Some(r) = self.rev {
+            s += &r.to_string()
+        };
+        s.push('\n');
         s.push_str("$end\n");
         s
     }
 }
 
 pub enum MidiMode {
-    U1, U2, U3, U4, S1, S2, S3, S4
+    U1,
+    U2,
+    U3,
+    U4,
+    S1,
+    S2,
+    S3,
+    S4,
 }

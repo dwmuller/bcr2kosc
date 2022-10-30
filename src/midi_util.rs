@@ -1,4 +1,3 @@
-
 use midir::MidiIO;
 use std::error::Error;
 
@@ -11,4 +10,3 @@ pub fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port, Box
         None => Err("MIDI port not found".into()),
     }
 }
-
