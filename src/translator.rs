@@ -1,22 +1,20 @@
 //! OSC 1.0 supports only these data types: Int, Float, String, Blob, and Time.
 //! Reaper expects Float(1.0) for Boolean true, Float(0.0) for false.
-//! 
+//!
 
 use std::iter;
 
 use async_stream::stream;
-use futures::stream::{Stream, StreamExt};
-use log::{error, info};
+use log::{error, debug};
 use midi_control::*;
 use rosc::address::{Matcher, OscAddress};
 use rosc::{OscMessage, OscPacket, OscType};
-
+use tokio_stream::{Stream, StreamExt};
 
 pub fn midi_to_osc<I: Stream<Item = MidiMessage> + Unpin>(
-    mut midi: I,
+    midi: I,
 ) -> impl Stream<Item = OscPacket> {
-    stream! {
-        while let Some(midi_msg) = midi.next().await {
+    midi.filter_map(|midi_msg| {
         match midi_msg {
             MidiMessage::ControlChange(
                 Channel::Ch1,
@@ -30,20 +28,22 @@ pub fn midi_to_osc<I: Stream<Item = MidiMessage> + Unpin>(
                 // Strangely, Reaper wants boolean values as floats, and insists
                 // on "1.0" or "0.0".
                 let value = cv_to_bool(value);
-                yield OscPacket::Message(OscMessage {
+                Some(OscPacket::Message(OscMessage {
                     addr: "/key/1".to_string(),
-                    args: [OscType::Float(if value {1.0} else {0.0})].to_vec(),
-//                    args: [OscType::Bool(value)].to_vec(),
-                })
+                    args: [OscType::Float(if value { 1.0 } else { 0.0 })].to_vec(),
+                    //                    args: [OscType::Bool(value)].to_vec(),
+                }))
             }
             MidiMessage::Invalid => {
                 //error!("Invalid MIDI input.");
+                None
             }
             _ => {
-                info!("Ignored MIDI msg: {midi_msg:?}");
+                debug!("Ignored MIDI msg: {midi_msg:?}");
+                None
             }
-        }}
-    }
+        }
+    })
 }
 
 //fn cv_to_bool(v: u8) -> bool { if v < 64 {false} else {true}}

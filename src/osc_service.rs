@@ -1,4 +1,3 @@
-#![allow(unused_variables)]
 //! MIDI/OSC translator for Behringer BCR2000
 //!
 //! An OSC server receives OSC packets at a configured UDP port and translates
@@ -56,22 +55,21 @@ impl BCtlOscSvc {
     pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
         // We use a single UDP socket for sending and receiving.
         let udp_socket = Arc::new(UdpSocket::bind(self.osc_in_addr).await?);
-        {
-            // MIDI -> OSC
-            // Channel to receive MIDI messages.
-            let (sender, receiver) = mpsc::unbounded_channel();
-            self.spawned_tasks.push(self.start_midi_listener(sender)?);
-            self.spawned_tasks
-                .push(self.start_osc_sender(receiver, &udp_socket));
-        };
-        {
-            // OSC -> MIDI
-            // Channel to receive OSC messages.
-            let (sender, receiver) = mpsc::unbounded_channel();
-            self.spawned_tasks
-                .push(self.start_osc_listener(&udp_socket, sender));
-            self.spawned_tasks.push(self.start_midi_sender(receiver)?);
-        };
+
+        // MIDI -> OSC
+        // Channel to receive MIDI messages.
+        let (midi_tx, midi_rx) = mpsc::unbounded_channel();
+        self.spawned_tasks.push(self.start_midi_listener(midi_tx)?);
+        self.spawned_tasks
+            .push(self.start_osc_sender(midi_rx, &udp_socket));
+
+        // OSC -> MIDI
+        // Channel to receive OSC messages.
+        let (osc_tx, osc_rx) = mpsc::unbounded_channel();
+        self.spawned_tasks
+            .push(self.start_osc_listener(&udp_socket, osc_tx));
+        self.spawned_tasks.push(self.start_midi_sender(osc_rx)?);
+
         Ok(())
     }
 
@@ -106,7 +104,7 @@ impl BCtlOscSvc {
         receiver: mpsc::UnboundedReceiver<MidiMessage>,
         udp_socket: &Arc<UdpSocket>,
     ) -> JoinHandle<()> {
-        let receiver = Box::pin(midi_to_osc(UnboundedReceiverStream::from(receiver)));
+        let receiver = midi_to_osc(UnboundedReceiverStream::from(receiver));
         let osc_out_addrs = self.osc_out_addrs.clone();
         let udp_socket = udp_socket.clone();
         let value = spawn(async move {
@@ -162,29 +160,32 @@ async fn run_midi_listener(
         "{PGM} listening for MIDI on {}",
         midi_input.port_name(&midi_input_port).unwrap()
     );
-    let midi_input_cxn = midi_input
+    let midi_cxn = midi_input
         .connect(
             &midi_input_port,
             &format!("{PGM} listener"),
-            move |t, m, _| {
-                let midi = MidiMessage::from(m);
-                if let MidiMessage::Invalid = midi {
-                    warn!("Invalid MIDI input, {} bytes.", m.len());
-                } else {
-                    debug!("Received MIDI msg: {midi:?}");
-                    out.send(midi)
-                        .or_else(|e| {
-                            error!("Failed to enqueue MIDI message: {e}");
-                            Err(e)
-                        })
-                        .ok();
-                }
-            },
+            move |_time, buff, _context| {midi_listener_callback(buff, &out);},
             (),
         )
         .expect("MIDI input port should have allowed a connection");
     wait_on_stopping(stopper).await;
-    info!("MIDI listener stopped.")
+    midi_cxn.close();
+    info!("{PGM} MIDI listener stopped.")
+}
+
+fn midi_listener_callback(buff: &[u8], out: &mpsc::UnboundedSender<MidiMessage>) {
+    let midi = MidiMessage::from(buff);
+    if let MidiMessage::Invalid = midi {
+        warn!("Invalid MIDI input, {} bytes.", buff.len());
+    } else {
+        debug!("Received MIDI msg: {midi:?}");
+        out.send(midi)
+            .or_else(|e| {
+                error!("Failed to enqueue MIDI message: {e}");
+                Err(e)
+            })
+            .ok();
+    }
 }
 
 async fn run_osc_listener(
@@ -206,7 +207,7 @@ async fn run_osc_listener(
             _ = wait_on_stopping(stopper) => {true}
         };
     }
-    info!("OSC listener stopped.");
+    info!("{PGM} OSC listener stopped.");
 }
 
 async fn recv_osc(
@@ -220,7 +221,7 @@ async fn recv_osc(
             let buflen = *next + len;
             match rosc::decoder::decode_udp(&vec[0..buflen]) {
                 Ok((remainder, pkt)) => {
-                    debug!("Received OSC packet: {pkt:?}");
+                    debug!("Received OSC packet from {sender:?}: {pkt:?}");
                     let rlen = remainder.len();
                     if rlen > 0 {
                         debug!("OSC input remainder {len} bytes.");
@@ -250,6 +251,7 @@ async fn run_osc_sender<SRC>(src: SRC, osc_out_addrs: Arc<Vec<SocketAddr>>, dest
 where
     SRC: Stream<Item = OscPacket> + Unpin,
 {
+    info!("{PGM} will send OSC from UDP port {:?}.", dest.local_addr());
     pin!(src);
     while let Some(pkt) = src.next().await {
         let e = encode(&pkt);
@@ -265,7 +267,7 @@ where
             Err(e) => error!("OSC encoding failed: {e}"),
         }
     }
-    info!("OSC sender stopped.");
+    info!("{PGM} OSC sender stopped.");
 }
 
 async fn run_midi_sender<SRC: Stream<Item = MidiMessage> + Unpin>(
@@ -283,5 +285,5 @@ async fn run_midi_sender<SRC: Stream<Item = MidiMessage> + Unpin>(
             })
             .ok();
     }
-    info!("MIDI sender stopped.")
+    info!("{PGM} MIDI sender stopped.")
 }
