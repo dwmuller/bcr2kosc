@@ -6,12 +6,13 @@
 //! An OSC client listens for MIDI/BCL messages from a BCR2000, translates them
 //! to OSC packets, and sends them to one or more configured UDP destinations.
 
+use crate::midi_io::MidiListenerStream;
 use crate::midi_util::find_port;
 use crate::translator::{midi_to_osc, osc_to_midi};
 use crate::PGM;
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 use midi_control::MidiMessage;
-use midir::{MidiInput, MidiInputPort, MidiOutput};
+use midir::MidiOutput;
 use rosc::encoder::encode;
 use rosc::OscPacket;
 use std::error::Error;
@@ -32,7 +33,7 @@ type StopMechanism = Arc<Notify>;
 
 /// Represents the OSC client/server. The start method starts listeners for OSC
 /// and MIDI traffic. The stop method shuts everything down.
-/// 
+///
 /// You should call stop before dropping this object. Otherwise the I/O tasks
 /// will continue running, with no way to stop them.
 ///
@@ -76,8 +77,11 @@ impl BCtlOscSvc {
 
         // MIDI -> OSC
         // Channel to receive MIDI messages.
-        let (midi_tx, midi_rx) = mpsc::unbounded_channel();
-        self.spawned_tasks.push(self.start_midi_listener(midi_tx)?);
+        let midi_rx = MidiListenerStream::new(&self.midi_in_port_name)?;
+        info!(
+            "{PGM} is listening for MIDI on \"{}\"",
+            self.midi_in_port_name
+        );
         self.spawned_tasks
             .push(self.start_osc_sender(midi_rx, &udp_socket));
 
@@ -107,30 +111,14 @@ impl BCtlOscSvc {
         }
     }
 
-    fn start_midi_listener(
-        &self,
-        sender: mpsc::UnboundedSender<MidiMessage>,
-    ) -> Result<JoinHandle<()>, Box<dyn Error>> {
-        let stopper = self.stopper.clone();
-        let midi_input = MidiInput::new(&format!("{PGM} listening to B-Control"))?;
-        let midi_input_port = find_port(&midi_input, &self.midi_in_port_name)?;
-        Ok(spawn(async move {
-            run_midi_listener(stopper, midi_input, midi_input_port, sender).await;
-        }))
-    }
-
     fn start_osc_sender(
         &self,
-        receiver: mpsc::UnboundedReceiver<MidiMessage>,
+        receiver: impl Stream<Item = MidiMessage> + Send + 'static,
         udp_socket: &Arc<UdpSocket>,
     ) -> JoinHandle<()> {
-        let receiver = midi_to_osc(UnboundedReceiverStream::from(receiver));
-        let osc_out_addrs = self.osc_out_addrs.clone();
-        let udp_socket = udp_socket.clone();
-        let value = spawn(async move {
-            run_osc_sender(receiver, osc_out_addrs, udp_socket).await;
-        });
-        value
+        let receiver = midi_to_osc(receiver);
+        let future = run_osc_sender(receiver, self.osc_out_addrs.clone(), udp_socket.clone());
+        spawn(future)
     }
 
     fn start_osc_listener(
@@ -168,44 +156,6 @@ impl BCtlOscSvc {
 
 async fn wait_on_stopping(stopper: StopMechanism) {
     stopper.notified().await;
-}
-
-async fn run_midi_listener(
-    stopper: StopMechanism,
-    midi_input: MidiInput,
-    midi_input_port: MidiInputPort,
-    out: mpsc::UnboundedSender<MidiMessage>,
-) {
-    info!(
-        "{PGM} listening for MIDI on {}",
-        midi_input.port_name(&midi_input_port).unwrap()
-    );
-    let midi_cxn = midi_input
-        .connect(
-            &midi_input_port,
-            &format!("{PGM} listener"),
-            move |_time, buff, _context| {midi_listener_callback(buff, &out);},
-            (),
-        )
-        .expect("MIDI input port should have allowed a connection");
-    wait_on_stopping(stopper).await;
-    midi_cxn.close();
-    info!("{PGM} MIDI listener stopped.")
-}
-
-fn midi_listener_callback(buff: &[u8], out: &mpsc::UnboundedSender<MidiMessage>) {
-    let midi = MidiMessage::from(buff);
-    if let MidiMessage::Invalid = midi {
-        warn!("Invalid MIDI input, {} bytes.", buff.len());
-    } else {
-        debug!("Received MIDI msg: {midi:?}");
-        out.send(midi)
-            .or_else(|e| {
-                error!("Failed to enqueue MIDI message: {e}");
-                Err(e)
-            })
-            .ok();
-    }
 }
 
 async fn run_osc_listener(
@@ -269,7 +219,7 @@ async fn recv_osc(
 
 async fn run_osc_sender<SRC>(src: SRC, osc_out_addrs: Arc<Vec<SocketAddr>>, dest: Arc<UdpSocket>)
 where
-    SRC: Stream<Item = OscPacket> + Unpin,
+    SRC: Stream<Item = OscPacket> + Send,
 {
     info!("{PGM} will send OSC from UDP port {:?}.", dest.local_addr());
     pin!(src);

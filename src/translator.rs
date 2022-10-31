@@ -5,15 +5,13 @@
 use std::iter;
 
 use async_stream::stream;
-use log::{error, debug};
+use log::{debug, error, warn};
 use midi_control::*;
 use rosc::address::{Matcher, OscAddress};
 use rosc::{OscMessage, OscPacket, OscType};
 use tokio_stream::{Stream, StreamExt};
 
-pub fn midi_to_osc<I: Stream<Item = MidiMessage> + Unpin>(
-    midi: I,
-) -> impl Stream<Item = OscPacket> {
+pub fn midi_to_osc(midi: impl Stream<Item = MidiMessage>) -> impl Stream<Item = OscPacket> {
     midi.filter_map(|midi_msg| {
         match midi_msg {
             MidiMessage::ControlChange(
@@ -35,7 +33,7 @@ pub fn midi_to_osc<I: Stream<Item = MidiMessage> + Unpin>(
                 }))
             }
             MidiMessage::Invalid => {
-                //error!("Invalid MIDI input.");
+                warn!("Invalid MIDI input.");
                 None
             }
             _ => {

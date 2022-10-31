@@ -10,8 +10,9 @@ use stderrlog::LogLevelNum;
 use midir::{MidiIO, MidiInput, MidiOutput};
 
 mod b_control;
-mod bcl;
+mod midi_io;
 use b_control::*;
+mod bcl;
 mod midi_util;
 use midi_util::*;
 mod osc_service;
