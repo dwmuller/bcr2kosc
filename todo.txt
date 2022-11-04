@@ -7,7 +7,13 @@
 
 Necessary:
 
-- Implement bidirection OSC/MIDI mapping.
+- Encapsulate MIDI I/O into Stream/Sink based on midi-control.
+  - Makes MIDI I/O readily accessible to utility commands.
+- Encapsulate OSC I/O into Stream/Sink based on rosc.
+  - Mainly for symmetry.
+- Implement bidirectional OSC/MIDI mapping.
+- Keep all task spawning & mgmt in one module.
+  - Consider # of tasks. Output may wait frequently. Mapping may be CPU intensive.
 - Parse BCL to determine device configuration, generate MIDI-OSC mappings.
 - Figure out how to store/load MIDI-OSC mappings.
 - Review svc object internals, determine if a mutex is needed, and whether or

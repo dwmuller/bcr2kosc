@@ -35,14 +35,25 @@ enum Commands {
     /// Listen to a port and display received MIDI. Useful for debugging.
     Listen {
         /// The name of the port to listen to. Use the list command to see ports.
-        port_name: String,
+        midi_in: String,
+    },
+    /// List information about a specific B-Control.
+    Info {
+        /// The name of the MIDI port recieve data from.
+        midi_in: String,
+        /// The name of the MIDI port to send data to.
+        midi_out: String,
+        /// The device number of the B-Control, which can be one through 16.
+        /// Defaults to 1. 
+        #[arg(default_value_t=1)]
+        device: u8,
     },
     /// Find and list Behringer B-Control devices.
     Find {
         /// The name of the MIDI port recieve data from.
-        in_port_name: String,
+        midi_in: String,
         /// The name of the MIDI port to send data to.
-        out_port_name: String,
+        midi_out: String,
     },
     /// Start an OSC service/client pair that translates to and from MIDI.
     Serve {
@@ -68,11 +79,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match &cli.command {
         Some(Commands::List {}) => Ok(list_ports()),
-        Some(Commands::Listen { port_name }) => listen(port_name),
+        Some(Commands::Listen { midi_in }) => listen(midi_in),
+        Some(Commands::Info {midi_in, midi_out, device}) => info(midi_in, midi_out, *device),
         Some(Commands::Find {
-            in_port_name,
-            out_port_name,
-        }) => list_bcontrols(in_port_name, out_port_name),
+            midi_in,
+            midi_out,
+        }) => list_bcontrols(midi_in, midi_out),
         Some(Commands::Serve {
             midi_in,
             midi_out,
@@ -125,6 +137,10 @@ fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
     println!("Connection open, reading input from '{port_name}'.");
     wait_for_user()?;
     Ok(())
+}
+
+fn info(_in_port_name: &str, _out_port_name: &str, _device: u8)  -> Result<(), Box<dyn Error>> {
+    todo!();
 }
 
 fn wait_for_user() -> Result<(), Box<dyn Error>> {

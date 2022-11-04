@@ -4,44 +4,52 @@
 
 use std::iter;
 
-use async_stream::stream;
 use log::{debug, error, warn};
 use midi_control::*;
 use rosc::address::{Matcher, OscAddress};
 use rosc::{OscMessage, OscPacket, OscType};
-use tokio_stream::{Stream, StreamExt};
 
-pub fn midi_to_osc(midi: impl Stream<Item = MidiMessage>) -> impl Stream<Item = OscPacket> {
-    midi.filter_map(|midi_msg| {
-        match midi_msg {
-            MidiMessage::ControlChange(
-                Channel::Ch1,
-                ControlEvent {
-                    control: 0x41,
-                    value,
-                },
-            ) => {
-                //info!("Translating this MIDI msg: {midi_msg:?}");
+// pub fn midi_to_osc(midi: impl Stream<Item = MidiMessage>) -> impl Stream<Item = OscPacket> {
+//     stream! {
+//         while let Some(op) = midi.next().await {
+//             let i = midi_msg_to_osc(&op);
+//             for o in i {yield o};
+//         }
+//     }
+// }
 
-                // Strangely, Reaper wants boolean values as floats, and insists
-                // on "1.0" or "0.0".
-                let value = cv_to_bool(value);
-                Some(OscPacket::Message(OscMessage {
-                    addr: "/key/1".to_string(),
-                    args: [OscType::Float(if value { 1.0 } else { 0.0 })].to_vec(),
-                    //                    args: [OscType::Bool(value)].to_vec(),
-                }))
-            }
-            MidiMessage::Invalid => {
-                warn!("Invalid MIDI input.");
-                None
-            }
-            _ => {
-                debug!("Ignored MIDI msg: {midi_msg:?}");
-                None
-            }
+/// Translates a MIDI msg to an OSC packet, if there is at least one valid
+/// mapping to an OSC message. The packet may contain multiple messages.
+pub fn midi_msg_to_osc(midi_msg: MidiMessage) -> Option<OscPacket> {
+
+    match midi_msg {
+        MidiMessage::ControlChange(
+            Channel::Ch1,
+            ControlEvent {
+                control: 0x41,
+                value,
+            },
+        ) => {
+            //info!("Translating this MIDI msg: {midi_msg:?}");
+
+            // Strangely, Reaper wants boolean values as floats, and insists
+            // on "1.0" or "0.0".
+            let value = cv_to_bool(value);
+            Some(OscPacket::Message(OscMessage {
+                addr: "/key/1".to_string(),
+                args: [OscType::Float(if value { 1.0 } else { 0.0 })].to_vec(),
+                //                    args: [OscType::Bool(value)].to_vec(),
+            }))
         }
-    })
+        MidiMessage::Invalid => {
+            warn!("Invalid MIDI input.");
+            None
+        }
+        _ => {
+            debug!("Ignored MIDI msg: {midi_msg:?}");
+            None
+        }
+    }
 }
 
 //fn cv_to_bool(v: u8) -> bool { if v < 64 {false} else {true}}
@@ -57,18 +65,18 @@ fn cv_to_bool(v: u8) -> bool {
     v >= 64
 }
 
-pub fn osc_to_midi<I: Stream<Item = OscPacket> + Unpin>(
-    mut osc: I,
-) -> impl Stream<Item = MidiMessage> {
-    stream! {
-        while let Some(op) = osc.next().await {
-            let i = osc_pkt_to_midi(&op);
-            for m in i {yield m};
-        }
-    }
-}
+// pub fn osc_to_midi<I: Stream<Item = OscPacket> + Unpin>(
+//     mut osc: I,
+// ) -> impl Stream<Item = MidiMessage> {
+//     stream! {
+//         while let Some(op) = osc.next().await {
+//             let i = osc_pkt_to_midi(&op);
+//             for m in i {yield m};
+//         }
+//     }
+// }
 
-fn osc_pkt_to_midi(op: &OscPacket) -> Box<dyn Iterator<Item = MidiMessage> + Send + '_> {
+pub fn osc_pkt_to_midi(op: &OscPacket) -> impl Iterator<Item = MidiMessage> + Send + '_ {
     match op {
         OscPacket::Message(m) => osc_msg_to_midi(m),
         OscPacket::Bundle(b) => Box::new(b.content.iter().map(|p| osc_pkt_to_midi(p)).flatten()),

@@ -84,6 +84,7 @@ dependencies = [
  "log",
  "midi-control",
  "midir",
+ "pin-project-lite",
  "rosc",
  "stderrlog",
  "tokio",
