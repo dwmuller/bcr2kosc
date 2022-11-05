@@ -19,6 +19,14 @@
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
             "args": ["serve", "Focusrite USB MIDI", "Focusrite USB MIDI", "127.0.0.1:9823", "127.0.0.1:8823"],
             "cwd": "${workspaceFolder}"
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug listen",
+            "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
+            "args": ["listen", "Focusrite USB MIDI"],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }
