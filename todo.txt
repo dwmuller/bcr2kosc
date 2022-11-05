@@ -7,17 +7,13 @@
 
 Necessary:
 
-- Encapsulate MIDI I/O into Stream/Sink based on midi-control.
-  - Makes MIDI I/O readily accessible to utility commands.
 - Encapsulate OSC I/O into Stream/Sink based on rosc.
-  - Mainly for symmetry.
+  - Mainly for symmetry. Worthwhile?
 - Implement bidirectional OSC/MIDI mapping.
 - Keep all task spawning & mgmt in one module.
   - Consider # of tasks. Output may wait frequently. Mapping may be CPU intensive.
 - Parse BCL to determine device configuration, generate MIDI-OSC mappings.
 - Figure out how to store/load MIDI-OSC mappings.
-- Review svc object internals, determine if a mutex is needed, and whether or
-  not service tasks are safe if a svc object is dropped without stopping them.
 
 Useful:
 - Read/write config file.
@@ -40,3 +36,5 @@ Would be nice:
   - Maybe preset # should be represented in OSC addresses.
   - Would have to track controller's curent preset.
   - Not clear how this would interact with the "scratch" preset.
+- Maybe simplify MidiSink implementation?
+- Check for blocking I/O in MidiSink?
