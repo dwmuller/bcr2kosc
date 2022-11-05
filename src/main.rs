@@ -1,22 +1,23 @@
+use std::time::Duration;
+use std::{error::Error, net::SocketAddr};
+
 use clap::{Parser, Subcommand};
+use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
 use midi_control::message::SysExType;
 use midi_control::{MidiMessage, SysExEvent};
-use std::io::stdin;
-use std::time::Duration;
-use std::{error::Error, net::SocketAddr};
 use stderrlog::LogLevelNum;
-
-use midir::{MidiIO, MidiInput, MidiOutput};
 
 mod b_control;
 mod midi_io;
 use b_control::*;
 mod bcl;
 mod midi_util;
-use midi_util::*;
 mod osc_service;
 use osc_service::*;
+use tokio::signal;
+
+use crate::midi_io::{MidiSink, MidiStream};
 mod translator;
 
 pub const PGM: &str = "bcr2kosc";
@@ -44,8 +45,8 @@ enum Commands {
         /// The name of the MIDI port to send data to.
         midi_out: String,
         /// The device number of the B-Control, which can be one through 16.
-        /// Defaults to 1. 
-        #[arg(default_value_t=1)]
+        /// Defaults to 1.
+        #[arg(default_value_t = 1)]
         device: u8,
     },
     /// Find and list Behringer B-Control devices.
@@ -79,89 +80,68 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match &cli.command {
         Some(Commands::List {}) => Ok(list_ports()),
-        Some(Commands::Listen { midi_in }) => listen(midi_in),
-        Some(Commands::Info {midi_in, midi_out, device}) => info(midi_in, midi_out, *device),
-        Some(Commands::Find {
+        Some(Commands::Listen { midi_in }) => listen(midi_in).await,
+        Some(Commands::Info {
             midi_in,
             midi_out,
-        }) => list_bcontrols(midi_in, midi_out),
+            device,
+        }) => info(midi_in, midi_out, *device),
+        Some(Commands::Find { midi_in, midi_out }) => list_bcontrols(midi_in, midi_out).await,
         Some(Commands::Serve {
             midi_in,
             midi_out,
             osc_in_addr,
             osc_out_addrs,
-        }) => {
-            let mut svc = BCtlOscSvc::new(midi_in, midi_out, osc_in_addr, osc_out_addrs);
-            svc.start().await?;
-            wait_for_user()?;
-            svc.stop().await;
-            info!("Stopped.");
-            Ok(())
-        }
+        }) => serve(&midi_in, &midi_out, &osc_in_addr, &osc_out_addrs).await,
         None => Ok(()),
     }
 }
 
 fn list_ports() {
-    let midi_in = MidiInput::new("{PGM} list_ports").unwrap();
-    print_ports("input", &midi_in);
-    let midi_out = MidiOutput::new("{PGM} list_ports").unwrap();
-    print_ports("output", &midi_out);
-}
-
-fn print_ports(dir: &str, io: &impl MidiIO) {
-    let ports = io.ports();
-    match ports.len() {
-        0 => println!("No {dir} ports found"),
-        _ => {
-            println!("\nAvailable {dir} ports:");
-            for (i, p) in ports.iter().enumerate() {
-                println!("{i}: {}", io.port_name(p).unwrap());
+    fn print_ports(dir: &str, lst: &[String]) {
+        match lst.len() {
+            0 => println!("No {dir} ports found"),
+            _ => {
+                println!("\nAvailable {dir} ports:");
+                for (i, p) in lst.iter().enumerate() {
+                    println!("{i}: {p}");
+                }
             }
-        }
-    };
+        };
+    }
+
+    print_ports("input", &midi_io::input_ports());
+    print_ports("output", &midi_io::output_ports());
 }
 
-fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
-    let midi_in = MidiInput::new(&format!("{PGM} listening"))?;
-    let in_port = find_port(&midi_in, port_name)?;
-    let _conn_in = midi_in.connect(
-        &in_port,
-        &format!("{PGM} listen connection"),
-        move |stamp, msg, _| {
-            let midi = MidiMessage::from(msg);
-            println!("{stamp}: {midi:?} (len={})", msg.len());
-        },
-        (),
-    )?;
-    println!("Connection open, reading input from '{port_name}'.");
-    wait_for_user()?;
+async fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
+    async fn print_midi_input(midi_in: impl Stream<Item = MidiMessage>) {
+        pin_mut!(midi_in);
+        while let Some(msg) = midi_in.next().await {
+            println!("{msg:?}");
+        }
+    }
+
+    let midi_in = MidiStream::bind(port_name)?;
+    select! {
+        _ = print_midi_input(midi_in).fuse() => {},
+        _ = signal::ctrl_c().fuse() => {}
+    };
     Ok(())
 }
 
-fn info(_in_port_name: &str, _out_port_name: &str, _device: u8)  -> Result<(), Box<dyn Error>> {
+fn info(_in_port_name: &str, _out_port_name: &str, _device: u8) -> Result<(), Box<dyn Error>> {
     todo!();
 }
 
-fn wait_for_user() -> Result<(), Box<dyn Error>> {
-    println!("Press Enter to exit.");
-    let mut input = String::new();
-    stdin().read_line(&mut input)?;
-    Ok(())
-}
-
-fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn Error>> {
-    let midi_in = MidiInput::new(&format!("{PGM} finding B-controls"))?;
-    let in_port = find_port(&midi_in, in_port_name)?;
-    let _conn_in = midi_in.connect(
-        &in_port,
-        in_port_name,
-        move |_stamp, midi_data, _context| {
-            let mm = MidiMessage::from(midi_data);
+async fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn Error>> {
+    async fn listen_for_sysex(midi_in: MidiStream) {
+        pin_mut!(midi_in);
+        while let Some(msg) = midi_in.next().await {
             if let MidiMessage::SysEx(SysExEvent {
                 r#type: SysExType::Manufacturer(BEHRINGER),
                 data,
-            }) = mm
+            }) = msg
             {
                 // Recognized as a Behringer sysex. Parse the sysex payload.
                 let bc = BControlSysEx::from_midi(&data);
@@ -177,9 +157,10 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
                     println!("{}: {}", dev, id_string);
                 }
             }
-        },
-        (),
-    )?;
+        }
+    }
+    let midi_in = MidiStream::bind(in_port_name)?;
+    let midi_out = MidiSink::bind(out_port_name)?;
 
     let bdata = BControlSysEx {
         device: DeviceID::Device(0),
@@ -187,14 +168,31 @@ fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn
         command: BControlCommand::RequestIdentity,
     }
     .to_midi();
-    let req = Vec::<u8>::from(MidiMessage::SysEx(SysExEvent {
+    let req = MidiMessage::SysEx(SysExEvent {
         r#type: SysExType::Manufacturer(BEHRINGER),
         data: bdata,
-    }));
-    let midi_out = MidiOutput::new(&format!("{PGM} finding B-controls"))?;
-    let out_port = find_port(&midi_out, out_port_name)?;
-    let mut conn_out = midi_out.connect(&out_port, "{PGM} finding B-controls")?;
-    conn_out.send(&req)?;
-    std::thread::sleep(Duration::from_millis(100));
+    });
+    pin_mut!(midi_out);
+    midi_out.send(req).await?;
+    select! {
+        _ = listen_for_sysex(midi_in).fuse() => {},
+        _ = tokio::time::sleep(Duration::from_millis(100)).fuse() => {},
+    }
     Ok(())
+}
+
+async fn serve(
+    midi_in: &str,
+    midi_out: &str,
+    osc_in_addr: &SocketAddr,
+    osc_out_addrs: &[SocketAddr],
+) -> Result<(), Box<dyn Error>> {
+    {
+        let mut svc = BCtlOscSvc::new(midi_in, midi_out, osc_in_addr, osc_out_addrs);
+        select! {
+            _ = svc.run().fuse() => {info!("Stopped.");},
+            _ = signal::ctrl_c().fuse() => {svc.stop().await; },
+        };
+        Ok(())
+    }
 }

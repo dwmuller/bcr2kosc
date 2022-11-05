@@ -50,7 +50,7 @@ impl Stream for MidiStream {
 
 impl MidiStream {
     /// Creates a new MidiListener stream for the named MIDI I/O port.
-    pub fn bind(port_name: &str) -> Result<impl Stream<Item = MidiMessage>, Box<dyn Error>> {
+    pub fn bind(port_name: &str) -> Result<MidiStream, Box<dyn Error>> {
         let midi_input = MidiInput::new(&format!("midi-io MIDI input"))?;
         let midi_input_port = find_port(&midi_input, port_name)?;
         let (tx, rx) = mpsc::unbounded();
@@ -161,11 +161,21 @@ impl<'a> Sink<MidiMessage> for MidiSink<'a> {
 /// Provides a snapshot of input port names. This list can differ on
 /// subsequent calls, as MIDI devices are connected or disconnected.
 pub fn input_ports() -> Vec<String> {
-    todo!()
+    let midi_in = MidiInput::new("{PGM} list_ports").unwrap();
+    midi_in
+        .ports()
+        .iter()
+        .map(|p| midi_in.port_name(p).unwrap())
+        .collect()
 }
 
 /// Provides a snapshot of input port names. This list can differ on
 /// subsequent calls, as MIDI devices are connected or disconnected.
 pub fn output_ports() -> Vec<String> {
-    todo!()
+    let midi_out = MidiOutput::new("{PGM} list_ports").unwrap();
+    midi_out
+        .ports()
+        .iter()
+        .map(|p| midi_out.port_name(p).unwrap())
+        .collect()
 }
