@@ -149,7 +149,7 @@ async fn run_midi_to_osc<SRC>(
         _ = run_midi_to_osc_loop(src, osc_out_addrs, dest).fuse() => {},
         _ = wait_on_stopping(stopper).fuse() => {}
     };
-    info!("{PGM} OSC listener stopped.");
+    info!("{PGM} OSC sender stopped.");
 }
 
 async fn run_midi_to_osc_loop<SRC>(
@@ -177,7 +177,7 @@ async fn run_midi_to_osc_loop<SRC>(
             }
         }
     }
-    info!("{PGM} OSC sender stopped.");
+    info!("{PGM} OSC sender source exhausted.");
 }
 
 async fn run_osc_to_midi<D>(stopper: StopMechanism, src: Arc<UdpSocket>, dest: D)
