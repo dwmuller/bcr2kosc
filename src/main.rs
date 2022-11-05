@@ -6,7 +6,6 @@ use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
 use midi_control::message::SysExType;
 use midi_control::{MidiMessage, SysExEvent};
-use stderrlog::LogLevelNum;
 
 mod b_control;
 mod midi_io;
@@ -25,6 +24,11 @@ pub const PGM: &str = "bcr2kosc";
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
+
+    /// Logging verbosity. Specify multiple times for more verbosity, e.g. -vvv.
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    verbose: u8,
+
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -72,12 +76,9 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    stderrlog::new()
-        .verbosity(LogLevelNum::Debug)
-        .init()
-        .unwrap();
 
     let cli = Cli::parse();
+    stderrlog::new().verbosity(cli.verbose as usize).init().unwrap();
     match &cli.command {
         Some(Commands::List {}) => Ok(list_ports()),
         Some(Commands::Listen { midi_in }) => listen(midi_in).await,
