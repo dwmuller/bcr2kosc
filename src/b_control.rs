@@ -8,7 +8,7 @@
 //! used in the midi_msg library crate and uses some types from it.
 //!
 
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 
 use midi_control::sysex::ManufacturerId;
 
@@ -19,7 +19,7 @@ pub const BEHRINGER: ManufacturerId = ManufacturerId::ExtId(0x20u8, 0x32u8);
 /// to or from the BC devices have this structure.
 pub struct BControlSysEx {
     pub device: DeviceID,
-    pub model: Option<BControlModel>,
+    pub model: BControlModel,
     pub command: BControlCommand,
 }
 
@@ -50,13 +50,23 @@ impl BControlSysEx {
             DeviceID::Any => 0x7f,
         });
         v.push(match self.model {
-            Some(BControlModel::BCR) => 0x15,
-            Some(BControlModel::BCF) => 0x14,
-            None => 0x7f,
+            BControlModel::BCR => 0x15,
+            BControlModel::BCF => 0x14,
+            BControlModel::Any => 0x7f,
         });
         self.command.extend_midi(v);
+        v.push(midi_control::consts::EOX);
     }
     pub fn from_midi(m: &[u8]) -> Result<(Self, usize), ParseError> {
+        if m.len() == 0 {
+            return error("no sysex data");
+        }
+        // Elide EOX byte if present. Some MIDI parser packages do this already,
+        // some do not.
+        let mut m = m;
+        if m[m.len() - 1] == midi_control::consts::EOX {
+            m = &m[..m.len() - 1];
+        };
         if m.len() >= 3 {
             let device = match m[0] {
                 0..=15 => DeviceID::Device(m[0]),
@@ -64,9 +74,9 @@ impl BControlSysEx {
                 n => return error(&format!("invalid device id. ({n})")),
             };
             let model = match m[1] {
-                0x14 => Some(BControlModel::BCF),
-                0x15 => Some(BControlModel::BCR),
-                0x7f => None,
+                0x14 => BControlModel::BCF,
+                0x15 => BControlModel::BCR,
+                0x7f => BControlModel::Any,
                 n => return error(&format!("bad B-Control model number ({n:x})")),
             };
             let (command, used) = match m[2] {
@@ -144,12 +154,41 @@ impl BControlSysEx {
     }
 }
 
+impl From<BControlSysEx> for Vec<u8> {
+    fn from(b: BControlSysEx) -> Self {
+        b.to_midi()
+    }
+}
+
+impl TryFrom<&[u8]> for BControlSysEx {
+    type Error = ParseError;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        match Self::from_midi(value) {
+            Ok(value) => Ok(value.0),
+            Err(e) => Err(e),
+        }
+    }
+}
+
 /// Specifies the B-Control device models addressed by a B-Control request, or
 /// responding to one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BControlModel {
     BCR,
     BCF,
+    Any,
+}
+
+impl Display for BControlModel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BControlModel::BCR => "BCR",
+            BControlModel::BCF => "BCF",
+            BControlModel::Any => "?",
+        }
+        .fmt(f)
+    }
 }
 
 /// B-Control command data appears in system exclusive messages sent to or

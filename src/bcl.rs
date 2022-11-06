@@ -33,6 +33,7 @@ impl BclBlock {
         match self.model {
             BControlModel::BCR => s += "R",
             BControlModel::BCF => s += "F",
+            BControlModel::Any => s += "?",
         }
         if let Some(r) = self.rev {
             s += &r.to_string()

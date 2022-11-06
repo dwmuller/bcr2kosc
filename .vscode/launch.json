@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Debug find",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
-            "args": ["-vvv", "find", "Focusrite USB MIDI", "Focusrite USB MIDI"],
+            "args": ["-vvv", "find", "--delay=32000", "Focusrite USB MIDI", "Focusrite USB MIDI"],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "rust: cargo build",
         },

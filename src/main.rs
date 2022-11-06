@@ -3,7 +3,7 @@ use std::{error::Error, net::SocketAddr};
 
 use clap::{Parser, Subcommand};
 use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
-use log::{info, debug};
+use log::info;
 use midi_control::message::SysExType;
 use midi_control::{MidiMessage, SysExEvent};
 
@@ -43,6 +43,9 @@ enum Commands {
     },
     /// List information about a specific B-Control.
     Info {
+        /// Time delay to listen for a response before giving up.
+        #[arg(long, default_value_t = 1)]
+        delay: u64,
         /// The name of the MIDI port recieve data from.
         midi_in: String,
         /// The name of the MIDI port to send data to.
@@ -54,6 +57,9 @@ enum Commands {
     },
     /// Find and list Behringer B-Control devices.
     Find {
+        /// Time delay to listen for a response before giving up.
+        #[arg(long, default_value_t = 1)]
+        delay: u64,
         /// The name of the MIDI port recieve data from.
         midi_in: String,
         /// The name of the MIDI port to send data to.
@@ -84,11 +90,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::List {}) => Ok(list_ports()),
         Some(Commands::Listen { midi_in }) => listen(midi_in).await,
         Some(Commands::Info {
+            delay,
             midi_in,
             midi_out,
             device,
-        }) => info(midi_in, midi_out, *device).await,
-        Some(Commands::Find { midi_in, midi_out }) => list_bcontrols(midi_in, midi_out).await,
+        }) => info(midi_in, midi_out, *device, *delay).await,
+        Some(Commands::Find {
+            delay,
+            midi_in,
+            midi_out,
+        }) => list_bcontrols(midi_in, midi_out, *delay).await,
         Some(Commands::Serve {
             midi_in,
             midi_out,
@@ -134,13 +145,21 @@ async fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
 
 struct Spawner {}
 impl futures::task::Spawn for Spawner {
-    fn spawn_obj(&self, future: futures::task::FutureObj<'static, ()>) -> Result<(), futures::task::SpawnError> {
+    fn spawn_obj(
+        &self,
+        future: futures::task::FutureObj<'static, ()>,
+    ) -> Result<(), futures::task::SpawnError> {
         tokio::task::spawn(future);
         Ok(())
     }
 }
 
-async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {
+async fn info(
+    in_port_name: &str,
+    out_port_name: &str,
+    device: u8,
+    _delay: u64,
+) -> Result<(), Box<dyn Error>> {
     async fn listen_for_bcl(in_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {
         let midi_in = MidiStream::bind(in_port_name)?.filter_map(|m| async {
             match m {
@@ -176,13 +195,13 @@ async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<(),
         }
         Ok(())
     }
-    let midi_out = MidiSink2::bind(out_port_name, Spawner{})?;
+    let midi_out = MidiSink2::bind(out_port_name, Spawner {})?;
     // let midi_out = MidiSink2::bind(out_port_name)?;
 
     let bdata = BControlSysEx {
         device: DeviceID::Any,
-        model: Some(BControlModel::BCR),
-        command: BControlCommand::RequestData (PresetIndex::Temporary),
+        model: BControlModel::Any,
+        command: BControlCommand::RequestData(PresetIndex::Temporary),
     };
     let req = to_midi_sysex(bdata);
     pin_mut!(midi_out);
@@ -192,49 +211,56 @@ async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<(),
     Ok(())
 }
 
-async fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn Error>> {
-    async fn listen_for_sysex(midi_in: MidiStream) {
-        pin_mut!(midi_in);
-        while let Some(msg) = midi_in.next().await {
-            if let MidiMessage::SysEx(SysExEvent {
-                r#type: SysExType::Manufacturer(BEHRINGER),
-                data,
-            }) = msg
-            {
-                // Recognized as a Behringer sysex. Parse the sysex payload.
-                let bc = BControlSysEx::from_midi(&data);
-                if let Ok((
-                    BControlSysEx {
-                        device: DeviceID::Device(dev),
-                        model: _,
-                        command: BControlCommand::SendIdentity { id_string },
-                    },
-                    _, // unused size of consumed data
-                )) = bc
-                {
-                    info!("{}: {}", dev, id_string);
-                }
-            }
-        }
-    }
+async fn list_bcontrols(
+    in_port_name: &str,
+    out_port_name: &str,
+    delay: u64,
+) -> Result<(), Box<dyn Error>> {
     let midi_in = MidiStream::bind(in_port_name)?;
-    let midi_out = MidiSink2::bind(out_port_name, Spawner{})?;
+    let midi_out = MidiSink2::bind(out_port_name, Spawner {})?;
     // let midi_out = MidiSink2::bind(out_port_name)?;
+
+    let timeout = tokio::time::sleep(Duration::from_secs(delay));
+    let midi_in = midi_in
+        .filter_map(|m| filter_behringer_sysex(m))
+        .take_until(timeout);
 
     let bdata = BControlSysEx {
         device: DeviceID::Any,
-        model: Some(BControlModel::BCR),
+        model: BControlModel::Any,
         command: BControlCommand::RequestIdentity,
     };
     let req = to_midi_sysex(bdata);
     pin_mut!(midi_out);
     midi_out.send(req).await?;
-    select! {
-        _ = listen_for_sysex(midi_in).fuse() => {},
-        _ = tokio::time::sleep(Duration::from_secs(10)).fuse() => {},
-    }
-    debug!("Stopping");
+    let f = |sysex| async {
+        if let BControlSysEx {
+            device: DeviceID::Device(dev),
+            model,
+            command: BControlCommand::SendIdentity { id_string },
+        } = sysex
+        {
+            println!("{dev}, {model:}, {id_string}");
+        }
+    };
+    midi_in.for_each(f).await;
     Ok(())
+}
+
+async fn filter_behringer_sysex(msg: MidiMessage) -> Option<BControlSysEx> {
+    if let MidiMessage::SysEx(SysExEvent {
+        r#type: SysExType::Manufacturer(BEHRINGER),
+        data,
+    }) = msg
+    {
+        // Recognized as a Behringer sysex. Parse the sysex payload.
+        match BControlSysEx::from_midi(&data) {
+            Ok(bcse) => Some(bcse.0),
+            Err(_) => None,
+        }
+    } else {
+        None
+    }
 }
 
 fn to_midi_sysex(bdata: BControlSysEx) -> MidiMessage {
