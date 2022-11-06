@@ -6,15 +6,11 @@
 use std::error::Error;
 use std::fmt::Display;
 use std::pin::Pin;
-use std::sync::Arc;
 use std::task::Poll;
 
-use futures::channel::mpsc::{self, UnboundedSender};
 use futures::channel::mpsc::UnboundedReceiver;
-use futures::future::BoxFuture;
-use futures::lock::Mutex;
-use futures::task::{FutureObj, Spawn};
-use futures::{ready, FutureExt, Sink, Stream, StreamExt};
+use futures::channel::mpsc::{self, UnboundedSender};
+use futures::{Sink, Stream};
 use log::{debug, error, info};
 use midi_control::MidiMessage;
 use midir::{MidiIO, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
@@ -23,6 +19,7 @@ use pin_project::pin_project;
 #[derive(Debug)]
 pub enum MidiIoError {
     ChannelSender(mpsc::SendError),
+    StdChannelSender(std::sync::mpsc::SendError<MidiMessage>),
     MidiInit(midir::InitError),
     MidiSend(midir::SendError),
     MidiInputConnect(midir::ConnectError<MidiInput>),
@@ -35,12 +32,12 @@ pub enum ErrorKind {
     MidiPortNameNotFound,
     NotConnected,
 }
-impl ErrorKind {
-    pub fn as_str(&self) -> &str {
+impl Display for ErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             ErrorKind::MidiPortNameNotFound => "named MIDI port not found",
             ErrorKind::NotConnected => "not connected to a MIDI port",
-        }
+        }.fmt(f)
     }
 }
 
@@ -48,11 +45,12 @@ impl Display for MidiIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             MidiIoError::ChannelSender(e) => e.fmt(f),
+            MidiIoError::StdChannelSender(e) => e.fmt(f),
             MidiIoError::MidiInit(e) => e.fmt(f),
             MidiIoError::MidiSend(e) => e.fmt(f),
             MidiIoError::MidiInputConnect(e) => e.fmt(f),
             MidiIoError::SpawnError(e) => e.fmt(f),
-            MidiIoError::Regular(k) => write!(f, "{:?}", k),
+            MidiIoError::Regular(k) => k.fmt(f),
         }
     }
 }
@@ -67,9 +65,19 @@ impl Error for MidiIoError {
     }
 }
 
+impl From<ErrorKind> for MidiIoError {
+    fn from(value: ErrorKind) -> Self {
+        MidiIoError::Regular(value)
+    }
+}
 impl From<mpsc::SendError> for MidiIoError {
     fn from(e: mpsc::SendError) -> Self {
         MidiIoError::ChannelSender(e)
+    }
+}
+impl From<std::sync::mpsc::SendError<MidiMessage>> for MidiIoError {
+    fn from(e: std::sync::mpsc::SendError<MidiMessage>) -> Self {
+        MidiIoError::StdChannelSender(e)
     }
 }
 impl From<midir::InitError> for MidiIoError {
@@ -160,46 +168,55 @@ impl MidiStream {
     }
 }
 
+/// A Sink which transmits MIDI messages in the form of
+/// `midi_connect::MidiMessage` structs to a single MIDI port.
 #[pin_project]
-pub struct MidiSink2 {
+pub struct MidiSink {
     #[pin]
-    data_q: mpsc::Sender<MidiMessage>,
+    data_q: Option<std::sync::mpsc::Sender<MidiMessage>>,
     #[pin]
     response_q: mpsc::UnboundedReceiver<bool>,
     pending_count: usize,
 }
 
-impl MidiSink2 {
+// Windows MIDI port drivers may or may not pend when sending. This
+// implementation assumes that they do, and output is performed on a separate task. In order to verify that a send is
+// complete (at least to the point of handoff to the API), we use a response
+// channel
+
+impl MidiSink {
     /// Returns a new `MidiSink` bound to the named MIDI port.
-    pub fn bind(port_name: &str, spawner: impl Spawn) -> Result<Self> {
+    /// 
+    /// This starts an OS thread to handle writes, which may be synchronous,
+    /// depending on operating system and MIDI port driver.
+    pub fn bind(port_name: &str) -> Result<Self> {
         let midi_output = MidiOutput::new(&format!("midi-io MIDI output"))?;
         let midi_output_port = find_port(&midi_output, port_name)?;
         let midi_cxn = midi_output
             .connect(&midi_output_port, &format!("midi-io sender"))
             .expect("Failed to open MIDI output connection.");
-        let (data_tx, data_rx) = mpsc::channel::<MidiMessage>(10);
+        let (data_tx, data_rx) = std::sync::mpsc::channel::<MidiMessage>();
         let (response_tx, response_rx) = mpsc::unbounded::<bool>();
         let port_name = port_name.to_string();
         info!("midi-io writer started on \"{port_name:}\"");
-        spawner.spawn_obj(FutureObj::new(Box::new(run_midi_writer(
-            data_rx,
-            midi_cxn,
-            response_tx,
-        ))))?;
-        Ok(MidiSink2 {
-            data_q: data_tx,
+        std::thread::spawn(|| {
+            run_midi_writer(data_rx, midi_cxn, response_tx);
+        });
+        Ok(MidiSink {
+            data_q: Some(data_tx),
             response_q: response_rx,
             pending_count: 0,
         })
     }
 }
 
-async fn run_midi_writer(
-    mut data_rx: mpsc::Receiver<MidiMessage>,
+fn run_midi_writer(
+    data_rx: std::sync::mpsc::Receiver<MidiMessage>,
     mut midi_cxn: MidiOutputConnection,
     response_tx: UnboundedSender<bool>,
 ) {
-    while let Some(item) = data_rx.next().await {
+    // The only significant recv error is due to channel closure.
+    while let Ok(item) = data_rx.recv() {
         debug!("midi-io sending MIDI msg: {item:?}");
         let bytes: Vec<u8> = item.into();
         let result = midi_cxn.send(&bytes).map_err(MidiIoError::from);
@@ -212,25 +229,24 @@ async fn run_midi_writer(
             error!("midi-io response send error: {e}");
         }
     }
+    info!("midi-io listener thread exiting")
 }
 
-impl Sink<MidiMessage> for MidiSink2 {
+impl Sink<MidiMessage> for MidiSink {
     type Error = MidiIoError;
 
     fn poll_ready(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Result<()>> {
-        let this = self.project();
-        this.data_q.poll_ready(cx).map_err(MidiIoError::from)
+        self.poll_flush(cx)
     }
 
     fn start_send(self: Pin<&mut Self>, item: MidiMessage) -> Result<()> {
-        let this = self.project();
-        this.data_q
-            .start_send(item)
-            .map_err(MidiIoError::from)
-            .and_then(|v| {
-                *this.pending_count += 1;
+        match self.data_q {
+            Some(ref data_q) => data_q.send(item).map_err(MidiIoError::from).and_then(|v| {
+                *self.project().pending_count += 1;
                 Ok(v)
-            })
+            }),
+            None => Err(MidiIoError::from(ErrorKind::NotConnected)),
+        }
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Result<()>> {
@@ -247,92 +263,11 @@ impl Sink<MidiMessage> for MidiSink2 {
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Result<()>> {
         if let Poll::Ready(Ok(())) = self.as_mut().poll_flush(cx) {
-            self.data_q.close_channel();
+            self.data_q = None;
             Poll::Ready(Ok(()))
         } else {
             Poll::Pending
         }
-        
-    }
-}
-
-#[pin_project]
-#[must_use = "sinks do nothing unless polled"]
-/// A Sink which transmits MIDI messages in the form of
-/// `midi_connect::MidiMessage` structs to a single MIDI port.
-pub struct MidiSink<'a> {
-    midi_cxn: Option<Arc<Mutex<MidiOutputConnection>>>,
-    #[pin]
-    future: Option<BoxFuture<'a, Result<()>>>,
-    // future: Option<Box<dyn Future<Output=Result<(),midir::SendError>>>>,
-}
-
-impl<'a> MidiSink<'a> {
-    /// Returns a new `MidiSink` bound to the named MIDI port.
-    pub fn bind(port_name: &str) -> Result<Self> {
-        let midi_output = MidiOutput::new(&format!("midi-io MIDI output"))?;
-        let midi_output_port = find_port(&midi_output, port_name)?;
-        let midi_cxn = midi_output
-            .connect(&midi_output_port, &format!("midi-io sender"))
-            .expect("Failed to open MIDI output connection.");
-        let midi_cxn = Some(Arc::new(Mutex::new(midi_cxn)));
-        Ok(Self {
-            midi_cxn,
-            future: None,
-        })
-    }
-}
-
-impl<'a> Sink<MidiMessage> for MidiSink<'a> {
-    type Error = MidiIoError;
-
-    fn poll_ready(
-        self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<()>> {
-        self.poll_flush(cx)
-    }
-
-    fn start_send(self: Pin<&mut Self>, item: MidiMessage) -> Result<()> {
-        if self.future.is_some() {
-            panic!("start_send called without poll_ready being called first");
-        }
-        let mut this = self.project();
-        if let Some(midi_cxn) = this.midi_cxn {
-            debug!("Sending MIDI msg: {item:?}");
-            let bytes: Vec<u8> = item.into();
-            let midi_cxn = midi_cxn.clone();
-            let f = async move {
-                let mut lock_owned = midi_cxn.lock_owned().await;
-                lock_owned.send(&bytes).map_err(MidiIoError::from)
-            };
-            this.future.set(Some(f.boxed()));
-            Ok(())
-        } else {
-            Err(MidiIoError::Regular(ErrorKind::NotConnected))
-        }
-    }
-
-    fn poll_flush(
-        self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<()>> {
-        let mut this = self.project();
-        Poll::Ready(if this.midi_cxn.is_none() {
-            Err(MidiIoError::Regular(ErrorKind::NotConnected))
-        } else if this.future.is_none() {
-            Ok(())
-        } else {
-            let mut f = this.future.take().unwrap();
-            ready!(f.poll_unpin(cx))
-        })
-    }
-
-    fn poll_close(
-        self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<()>> {
-        self.poll_flush(cx)
     }
 }
 

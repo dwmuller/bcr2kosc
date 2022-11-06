@@ -16,7 +16,7 @@ mod osc_service;
 use osc_service::*;
 use tokio::signal;
 
-use crate::midi_io::{MidiSink2, MidiStream};
+use crate::midi_io::{MidiSink, MidiStream};
 mod translator;
 
 pub const PGM: &str = "bcr2kosc";
@@ -195,8 +195,8 @@ async fn info(
         }
         Ok(())
     }
-    let midi_out = MidiSink2::bind(out_port_name, Spawner {})?;
-    // let midi_out = MidiSink2::bind(out_port_name)?;
+    let midi_out = MidiSink::bind(out_port_name)?;
+    // let midi_out = MidiSink::bind(out_port_name)?;
 
     let bdata = BControlSysEx {
         device: DeviceID::Any,
@@ -217,8 +217,8 @@ async fn list_bcontrols(
     delay: u64,
 ) -> Result<(), Box<dyn Error>> {
     let midi_in = MidiStream::bind(in_port_name)?;
-    let midi_out = MidiSink2::bind(out_port_name, Spawner {})?;
-    // let midi_out = MidiSink2::bind(out_port_name)?;
+    let midi_out = MidiSink::bind(out_port_name)?;
+    // let midi_out = MidiSink::bind(out_port_name)?;
 
     let timeout = tokio::time::sleep(Duration::from_secs(delay));
     let midi_in = midi_in
