@@ -10,7 +10,7 @@
 
 use std::{error::Error, fmt::Display};
 
-use midi_control::sysex::ManufacturerId;
+use midi_control::{sysex::ManufacturerId, MidiMessage, SysExEvent, message::SysExType};
 
 /// Behringer's MIDI manufacturer ID.
 pub const BEHRINGER: ManufacturerId = ManufacturerId::ExtId(0x20u8, 0x32u8);
@@ -157,6 +157,26 @@ impl BControlSysEx {
 impl From<BControlSysEx> for Vec<u8> {
     fn from(b: BControlSysEx) -> Self {
         b.to_midi()
+    }
+}
+
+impl TryFrom<MidiMessage> for BControlSysEx {
+    type Error = ParseError;
+
+    fn try_from(value: MidiMessage) -> Result<Self, Self::Error> {
+        if let MidiMessage::SysEx(SysExEvent {
+            r#type: SysExType::Manufacturer(BEHRINGER),
+            data,
+        }) = value
+        {
+            // Recognized as a Behringer sysex. Parse the sysex payload.
+            match BControlSysEx::from_midi(&data) {
+                Ok(bcse) => Ok(bcse.0),
+                Err(e) => Err(e),
+            }
+        } else {
+            error("not a Behringer sysex")
+        }
     }
 }
 

@@ -222,7 +222,7 @@ async fn list_bcontrols(
 
     let timeout = tokio::time::sleep(Duration::from_secs(delay));
     let midi_in = midi_in
-        .filter_map(|m| filter_behringer_sysex(m))
+        .filter_map(|m| async {BControlSysEx::try_from(m).ok()})
         .take_until(timeout);
 
     let bdata = BControlSysEx {
@@ -230,10 +230,9 @@ async fn list_bcontrols(
         model: BControlModel::Any,
         command: BControlCommand::RequestIdentity,
     };
-    let req = to_midi_sysex(bdata);
     pin_mut!(midi_out);
-    midi_out.send(req).await?;
-    let f = |sysex| async {
+    midi_out.send(to_midi_sysex(bdata)).await?;
+    let action = |sysex| async {
         if let BControlSysEx {
             device: DeviceID::Device(dev),
             model,
@@ -243,24 +242,8 @@ async fn list_bcontrols(
             println!("{dev}, {model:}, {id_string}");
         }
     };
-    midi_in.for_each(f).await;
+    midi_in.for_each(action).await;
     Ok(())
-}
-
-async fn filter_behringer_sysex(msg: MidiMessage) -> Option<BControlSysEx> {
-    if let MidiMessage::SysEx(SysExEvent {
-        r#type: SysExType::Manufacturer(BEHRINGER),
-        data,
-    }) = msg
-    {
-        // Recognized as a Behringer sysex. Parse the sysex payload.
-        match BControlSysEx::from_midi(&data) {
-            Ok(bcse) => Some(bcse.0),
-            Err(_) => None,
-        }
-    } else {
-        None
-    }
 }
 
 fn to_midi_sysex(bdata: BControlSysEx) -> MidiMessage {
