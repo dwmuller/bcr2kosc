@@ -1,11 +1,11 @@
+use std::task::Poll;
 use std::time::Duration;
 use std::{error::Error, net::SocketAddr};
 
 use clap::{Parser, Subcommand};
-use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
+use futures::{future, pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
-use midi_control::message::SysExType;
-use midi_control::{MidiMessage, SysExEvent};
+use midi_control::MidiMessage;
 
 mod b_control;
 mod midi_io;
@@ -43,21 +43,18 @@ enum Commands {
     },
     /// List information about a specific B-Control.
     Info {
-        /// Time delay to listen for a response before giving up.
-        #[arg(long, default_value_t = 1)]
-        delay: u64,
         /// The name of the MIDI port recieve data from.
         midi_in: String,
         /// The name of the MIDI port to send data to.
         midi_out: String,
         /// The device number of the B-Control, which can be one through 16.
         /// Defaults to 1.
-        #[arg(default_value_t = 1)]
+        #[arg(default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
         device: u8,
     },
     /// Find and list Behringer B-Control devices.
     Find {
-        /// Time delay to listen for a response before giving up.
+        /// Time delay to listen for a response before giving up, in seconds.
         #[arg(long, default_value_t = 1)]
         delay: u64,
         /// The name of the MIDI port recieve data from.
@@ -90,11 +87,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::List {}) => Ok(list_ports()),
         Some(Commands::Listen { midi_in }) => listen(midi_in).await,
         Some(Commands::Info {
-            delay,
             midi_in,
             midi_out,
             device,
-        }) => info(midi_in, midi_out, *device, *delay).await,
+        }) => info(midi_in, midi_out, *device - 1).await,
         Some(Commands::Find {
             delay,
             midi_in,
@@ -154,60 +150,45 @@ impl futures::task::Spawn for Spawner {
     }
 }
 
-async fn info(
-    in_port_name: &str,
-    out_port_name: &str,
-    device: u8,
-    _delay: u64,
-) -> Result<(), Box<dyn Error>> {
-    async fn listen_for_bcl(in_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {
-        let midi_in = MidiStream::bind(in_port_name)?.filter_map(|m| async {
-            match m {
-                MidiMessage::SysEx(SysExEvent {
-                    r#type: SysExType::Manufacturer(BEHRINGER),
-                    data,
-                }) => {
-                    let bc = BControlSysEx::from_midi(&data);
-                    if let Ok((
-                        BControlSysEx {
-                            device: DeviceID::Device(dev),
-                            model: _,
-                            command: BControlCommand::SendBclMessage { text },
-                        },
-                        _,
-                    )) = bc
-                    {
-                        if dev != device {
-                            None
-                        } else {
-                            Some(text)
-                        }
-                    } else {
-                        None
-                    }
-                }
-                _ => None,
-            }
+async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {
+    let midi_in = MidiStream::bind(in_port_name)?
+        .filter_map(|m| async { BControlSysEx::try_from(m).ok() })
+        .filter_map(|sysex| {
+            future::ready(if !sysex.device.match_device(device) {
+                None
+            } else if let BControlCommand::SendBclMessage { msg_index, text } = sysex.command {
+                Some((msg_index, text))
+            } else {
+                None
+            })
         });
-        pin_mut!(midi_in);
-        while let Some(bcl) = midi_in.next().await {
-            println!("{bcl:?}");
+    let done = std::sync::Mutex::new(false);
+    let stop_fut = future::poll_fn(|_cx| {
+        if *done.lock().unwrap() {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
         }
-        Ok(())
-    }
-    let midi_out = MidiSink::bind(out_port_name)?;
-    // let midi_out = MidiSink::bind(out_port_name)?;
+    });
+    let midi_in = midi_in.take_until(stop_fut).inspect(|(_, text)| {
+        *done.lock().unwrap() = text == "$end";
+    });
 
     let bdata = BControlSysEx {
-        device: DeviceID::Any,
+        device: DeviceID::Device(device),
         model: BControlModel::Any,
         command: BControlCommand::RequestData(PresetIndex::Temporary),
     };
-    let req = to_midi_sysex(bdata);
-    pin_mut!(midi_out);
-    midi_out.send(req).await?;
-
-    listen_for_bcl(in_port_name, device).await?;
+    MidiSink::bind(out_port_name)?
+        .send(MidiMessage::from(bdata))
+        .await?;
+    let mut lines: Vec<(u16, String)> = midi_in.collect().await;
+    lines.sort_by_key(|item| item.0);
+    let lines: Vec<String> = lines.drain(..).map(|item| item.1).collect();
+    for line in lines {
+        println!("{line}")
+    }
+    // midi_in.for_each(|(n, text)| future::ready(println!("{n:06} {text}"))).await;
     Ok(())
 }
 
@@ -216,13 +197,9 @@ async fn list_bcontrols(
     out_port_name: &str,
     delay: u64,
 ) -> Result<(), Box<dyn Error>> {
-    let midi_in = MidiStream::bind(in_port_name)?;
-    let midi_out = MidiSink::bind(out_port_name)?;
-    // let midi_out = MidiSink::bind(out_port_name)?;
-
     let timeout = tokio::time::sleep(Duration::from_secs(delay));
-    let midi_in = midi_in
-        .filter_map(|m| async {BControlSysEx::try_from(m).ok()})
+    let midi_in = MidiStream::bind(in_port_name)?
+        .filter_map(|m| async { BControlSysEx::try_from(m).ok() })
         .take_until(timeout);
 
     let bdata = BControlSysEx {
@@ -230,8 +207,6 @@ async fn list_bcontrols(
         model: BControlModel::Any,
         command: BControlCommand::RequestIdentity,
     };
-    pin_mut!(midi_out);
-    midi_out.send(to_midi_sysex(bdata)).await?;
     let action = |sysex| async {
         if let BControlSysEx {
             device: DeviceID::Device(dev),
@@ -242,17 +217,11 @@ async fn list_bcontrols(
             println!("{dev}, {model:}, {id_string}");
         }
     };
+    MidiSink::bind(out_port_name)?
+        .send(MidiMessage::from(bdata))
+        .await?;
     midi_in.for_each(action).await;
     Ok(())
-}
-
-fn to_midi_sysex(bdata: BControlSysEx) -> MidiMessage {
-    let bdata = bdata.to_midi();
-    let req = MidiMessage::SysEx(SysExEvent {
-        r#type: SysExType::Manufacturer(BEHRINGER),
-        data: bdata,
-    });
-    req
 }
 
 async fn serve(

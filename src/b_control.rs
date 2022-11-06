@@ -10,7 +10,7 @@
 
 use std::{error::Error, fmt::Display};
 
-use midi_control::{sysex::ManufacturerId, MidiMessage, SysExEvent, message::SysExType};
+use midi_control::{message::SysExType, sysex::ManufacturerId, MidiMessage, SysExEvent};
 
 /// Behringer's MIDI manufacturer ID.
 pub const BEHRINGER: ManufacturerId = ManufacturerId::ExtId(0x20u8, 0x32u8);
@@ -33,6 +33,16 @@ pub enum DeviceID {
     /// BC device number 0x7f, denoting "any".
     Any,
 }
+
+impl DeviceID {
+    pub fn match_device(&self, device: u8) -> bool {
+        match self {
+            DeviceID::Device(d) => &device == d,
+            DeviceID::Any => true,
+        }
+    }
+}
+
 type ParseError = Box<dyn Error>;
 fn error<T>(s: &str) -> Result<T, ParseError> {
     Err(ParseError::from(s))
@@ -89,7 +99,8 @@ impl BControlSysEx {
                 ),
                 0x20 => (
                     BControlCommand::SendBclMessage {
-                        text: string_from_midi(&m[3..])?,
+                        msg_index: u14_from_midi_msb_lsb(&m[3..])?,
+                        text: string_from_midi(&m[5..])?,
                     },
                     m.len() - 3,
                 ),
@@ -106,7 +117,7 @@ impl BControlSysEx {
                     } else {
                         (
                             BControlCommand::BclReply {
-                                msg_indx: u14_from_midi_msb_lsb(&m[3..])?,
+                                msg_index: u14_from_midi_msb_lsb(&m[3..])?,
                                 error_code: u8_from_midi(&m[5..])?,
                             },
                             3,
@@ -157,6 +168,16 @@ impl BControlSysEx {
 impl From<BControlSysEx> for Vec<u8> {
     fn from(b: BControlSysEx) -> Self {
         b.to_midi()
+    }
+}
+impl From<BControlSysEx> for MidiMessage {
+    fn from(bc: BControlSysEx) -> Self {
+        let bdata = bc.to_midi();
+        let req = MidiMessage::SysEx(SysExEvent {
+            r#type: SysExType::Manufacturer(BEHRINGER),
+            data: bdata,
+        });
+        req
     }
 }
 
@@ -217,6 +238,7 @@ impl Display for BControlModel {
 pub enum BControlCommand {
     ///
     SendBclMessage {
+        msg_index: u16,
         text: String,
     },
 
@@ -238,7 +260,7 @@ pub enum BControlCommand {
         id_string: String,
     },
     BclReply {
-        msg_indx: u16,
+        msg_index: u16,
         error_code: u8,
     },
     SendPresetName {
@@ -257,8 +279,9 @@ impl BControlCommand {
             BControlCommand::RequestIdentity => {
                 v.push(0x01);
             }
-            BControlCommand::SendBclMessage { text } => {
+            BControlCommand::SendBclMessage { msg_index, text } => {
                 v.push(0x02);
+                u14_to_midi_msb_lsb(*msg_index, v);
                 extend_midi_from_string(text, v);
             }
             BControlCommand::SelectPreset { index } => {
@@ -288,11 +311,11 @@ impl BControlCommand {
                 extend_midi_from_string(id_string, v);
             }
             BControlCommand::BclReply {
-                msg_indx,
+                msg_index,
                 error_code,
             } => {
                 v.push(0x21);
-                u14_to_midi_msb_lsb(*msg_indx, v);
+                u14_to_midi_msb_lsb(*msg_index, v);
                 v.push(*error_code);
             }
             BControlCommand::SendPresetName { preset, name } => {

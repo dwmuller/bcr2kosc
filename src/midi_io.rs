@@ -150,7 +150,6 @@ impl MidiStream {
 
         let cb = move |_time: u64, buf: &[u8], _context: &mut ()| {
             let midi = MidiMessage::from(buf);
-            debug!("Received MIDI msg: {midi:?}");
             tx.unbounded_send(midi)
                 .or_else(|e| {
                     error!("midi-io listener error on send: {e}");
