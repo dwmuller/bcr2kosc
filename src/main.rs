@@ -1,3 +1,8 @@
+#![deny(missing_docs)]
+
+//! A service to translate between MIDI and OSC, specifically targeting
+//! Behringer B-Controllers (the B-Control Rotary and B-Control Faderport).
+//! 
 use std::task::Poll;
 use std::time::Duration;
 use std::{error::Error, net::SocketAddr};
@@ -19,6 +24,7 @@ use tokio::signal;
 use crate::midi_io::{MidiSink, MidiStream};
 mod translator;
 
+/// Program name, used in a variety of log messages.
 pub const PGM: &str = "bcr2kosc";
 
 #[derive(Parser)]
@@ -36,7 +42,9 @@ struct Cli {
 enum Commands {
     /// List MIDI ports.
     List {},
-    /// Listen to a port and display received MIDI. Useful for debugging.
+    /// Listen to a port and display received MIDI.
+    /// 
+    /// Useful for debugging.
     Listen {
         /// The name of the port to listen to. Use the list command to see ports.
         midi_in: String,
@@ -137,17 +145,6 @@ async fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
         _ = signal::ctrl_c().fuse() => {}
     };
     Ok(())
-}
-
-struct Spawner {}
-impl futures::task::Spawn for Spawner {
-    fn spawn_obj(
-        &self,
-        future: futures::task::FutureObj<'static, ()>,
-    ) -> Result<(), futures::task::SpawnError> {
-        tokio::task::spawn(future);
-        Ok(())
-    }
 }
 
 async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {

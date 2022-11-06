@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! A module to create and control MIDI Stream and Sync structs that communicate
 //! over streams in terms of data types defined by the `midi-control` crate. For
 //! internal implementation, it relies on the platform-agnostic `midir` crate.
@@ -16,6 +17,7 @@ use midi_control::MidiMessage;
 use midir::{MidiIO, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
 use pin_project::pin_project;
 
+/// Error enum for errors originating in or evoked by `midi-io`.
 #[derive(Debug)]
 pub enum MidiIoError {
     ChannelSender(mpsc::SendError),
