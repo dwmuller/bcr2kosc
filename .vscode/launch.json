@@ -9,8 +9,9 @@
             "request": "launch",
             "name": "Debug find",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
-            "args": ["find", "Focusrite USB MIDI", "Focusrite USB MIDI"],
-            "cwd": "${workspaceFolder}"
+            "args": ["-vvv", "find", "Focusrite USB MIDI", "Focusrite USB MIDI"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "rust: cargo build",
         },
         {
             "type": "lldb",
@@ -18,7 +19,8 @@
             "name": "Debug serve",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
             "args": ["serve", "Focusrite USB MIDI", "Focusrite USB MIDI", "127.0.0.1:9823", "127.0.0.1:8823"],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "rust: cargo build",
         },
         {
             "type": "lldb",
@@ -26,7 +28,8 @@
             "name": "Debug listen",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
             "args": ["listen", "Focusrite USB MIDI"],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "rust: cargo build",
         },
     ]
 }

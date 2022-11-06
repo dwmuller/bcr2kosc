@@ -7,7 +7,7 @@ authors = [ "dan.muller@dmuller.us" ]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-midir = "0.8.0"
+midir = {version = "0.8.0", features = [] }
 clap = { version = "4.0.14", features = ["derive"] }
 exitcode = "1.1.2"
 log = "0.4.17"
@@ -21,7 +21,7 @@ bytes = "1.2.1"
 tokio-stream = { version = "0.1.11", features = ["net", "sync"] }
 futures = "0.3.25"
 futures-sink = "0.3.25"
-pin-project-lite = "0.2.9"
+pin-project = "1.0.12"
 
 
 

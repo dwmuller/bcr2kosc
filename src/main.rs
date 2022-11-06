@@ -3,7 +3,7 @@ use std::{error::Error, net::SocketAddr};
 
 use clap::{Parser, Subcommand};
 use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
-use log::info;
+use log::{info, debug};
 use midi_control::message::SysExType;
 use midi_control::{MidiMessage, SysExEvent};
 
@@ -11,12 +11,12 @@ mod b_control;
 mod midi_io;
 use b_control::*;
 mod bcl;
-mod midi_util;
+
 mod osc_service;
 use osc_service::*;
 use tokio::signal;
 
-use crate::midi_io::{MidiSink, MidiStream};
+use crate::midi_io::{MidiSink2, MidiStream};
 mod translator;
 
 pub const PGM: &str = "bcr2kosc";
@@ -24,7 +24,6 @@ pub const PGM: &str = "bcr2kosc";
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-
     /// Logging verbosity. Specify multiple times for more verbosity, e.g. -vvv.
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
@@ -76,9 +75,11 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-
     let cli = Cli::parse();
-    stderrlog::new().verbosity(cli.verbose as usize).init().unwrap();
+    stderrlog::new()
+        .verbosity(cli.verbose as usize)
+        .init()
+        .unwrap();
     match &cli.command {
         Some(Commands::List {}) => Ok(list_ports()),
         Some(Commands::Listen { midi_in }) => listen(midi_in).await,
@@ -86,7 +87,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             midi_in,
             midi_out,
             device,
-        }) => info(midi_in, midi_out, *device),
+        }) => info(midi_in, midi_out, *device).await,
         Some(Commands::Find { midi_in, midi_out }) => list_bcontrols(midi_in, midi_out).await,
         Some(Commands::Serve {
             midi_in,
@@ -131,8 +132,64 @@ async fn listen(port_name: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn info(_in_port_name: &str, _out_port_name: &str, _device: u8) -> Result<(), Box<dyn Error>> {
-    todo!();
+struct Spawner {}
+impl futures::task::Spawn for Spawner {
+    fn spawn_obj(&self, future: futures::task::FutureObj<'static, ()>) -> Result<(), futures::task::SpawnError> {
+        tokio::task::spawn(future);
+        Ok(())
+    }
+}
+
+async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {
+    async fn listen_for_bcl(in_port_name: &str, device: u8) -> Result<(), Box<dyn Error>> {
+        let midi_in = MidiStream::bind(in_port_name)?.filter_map(|m| async {
+            match m {
+                MidiMessage::SysEx(SysExEvent {
+                    r#type: SysExType::Manufacturer(BEHRINGER),
+                    data,
+                }) => {
+                    let bc = BControlSysEx::from_midi(&data);
+                    if let Ok((
+                        BControlSysEx {
+                            device: DeviceID::Device(dev),
+                            model: _,
+                            command: BControlCommand::SendBclMessage { text },
+                        },
+                        _,
+                    )) = bc
+                    {
+                        if dev != device {
+                            None
+                        } else {
+                            Some(text)
+                        }
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            }
+        });
+        pin_mut!(midi_in);
+        while let Some(bcl) = midi_in.next().await {
+            println!("{bcl:?}");
+        }
+        Ok(())
+    }
+    let midi_out = MidiSink2::bind(out_port_name, Spawner{})?;
+    // let midi_out = MidiSink2::bind(out_port_name)?;
+
+    let bdata = BControlSysEx {
+        device: DeviceID::Any,
+        model: Some(BControlModel::BCR),
+        command: BControlCommand::RequestData (PresetIndex::Temporary),
+    };
+    let req = to_midi_sysex(bdata);
+    pin_mut!(midi_out);
+    midi_out.send(req).await?;
+
+    listen_for_bcl(in_port_name, device).await?;
+    Ok(())
 }
 
 async fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), Box<dyn Error>> {
@@ -155,31 +212,38 @@ async fn list_bcontrols(in_port_name: &str, out_port_name: &str) -> Result<(), B
                     _, // unused size of consumed data
                 )) = bc
                 {
-                    println!("{}: {}", dev, id_string);
+                    info!("{}: {}", dev, id_string);
                 }
             }
         }
     }
     let midi_in = MidiStream::bind(in_port_name)?;
-    let midi_out = MidiSink::bind(out_port_name)?;
+    let midi_out = MidiSink2::bind(out_port_name, Spawner{})?;
+    // let midi_out = MidiSink2::bind(out_port_name)?;
 
     let bdata = BControlSysEx {
-        device: DeviceID::Device(0),
+        device: DeviceID::Any,
         model: Some(BControlModel::BCR),
         command: BControlCommand::RequestIdentity,
-    }
-    .to_midi();
-    let req = MidiMessage::SysEx(SysExEvent {
-        r#type: SysExType::Manufacturer(BEHRINGER),
-        data: bdata,
-    });
+    };
+    let req = to_midi_sysex(bdata);
     pin_mut!(midi_out);
     midi_out.send(req).await?;
     select! {
         _ = listen_for_sysex(midi_in).fuse() => {},
-        _ = tokio::time::sleep(Duration::from_millis(100)).fuse() => {},
+        _ = tokio::time::sleep(Duration::from_secs(10)).fuse() => {},
     }
+    debug!("Stopping");
     Ok(())
+}
+
+fn to_midi_sysex(bdata: BControlSysEx) -> MidiMessage {
+    let bdata = bdata.to_midi();
+    let req = MidiMessage::SysEx(SysExEvent {
+        r#type: SysExType::Manufacturer(BEHRINGER),
+        data: bdata,
+    });
+    req
 }
 
 async fn serve(

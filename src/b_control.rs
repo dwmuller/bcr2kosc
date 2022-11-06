@@ -118,9 +118,7 @@ impl BControlSysEx {
                     3,
                 ),
                 0x40 => (
-                    BControlCommand::RequestData {
-                        preset: PresetIndex::from_midi(&m[3..])?,
-                    },
+                    BControlCommand::RequestData(PresetIndex::from_midi(&m[3..])?),
                     1,
                 ),
                 0x41 => (BControlCommand::RequestGlobalSetup, 0),
@@ -170,9 +168,7 @@ pub enum BControlCommand {
     SendFirmware {
         data: Vec<u8>,
     },
-    RequestData {
-        preset: PresetIndex,
-    },
+    RequestData(PresetIndex),
     RequestGlobalSetup,
     RequestPresetName {
         preset: PresetIndex,
@@ -214,7 +210,7 @@ impl BControlCommand {
                 v.push(0x34);
                 data.iter().for_each(|b| v.push(*b));
             }
-            BControlCommand::RequestData { preset } => {
+            BControlCommand::RequestData(preset) => {
                 v.push(0x40);
                 preset.extend_midi(v);
             }
@@ -260,7 +256,7 @@ impl BControlCommand {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum PresetIndex {
-    Preset { index: u8 },
+    Preset(u8),
     All,
     Temporary,
 }
@@ -268,7 +264,7 @@ pub enum PresetIndex {
 impl PresetIndex {
     fn from_midi(m: &[u8]) -> Result<PresetIndex, ParseError> {
         match u8_from_midi(m)? {
-            0..=31 => Ok(PresetIndex::Preset { index: m[0] }),
+            0..=31 => Ok(PresetIndex::Preset(m[0])),
             0x7e => Ok(PresetIndex::All),
             0x7f => Ok(PresetIndex::Temporary),
             n => error(&format!("bad preset index ({n})")),
@@ -276,7 +272,7 @@ impl PresetIndex {
     }
     fn extend_midi(self, v: &mut Vec<u8>) {
         match self {
-            PresetIndex::Preset { index } => v.push(index),
+            PresetIndex::Preset(index) => v.push(index),
             PresetIndex::All => v.push(0x7e),
             PresetIndex::Temporary => v.push(0x7f),
         }
