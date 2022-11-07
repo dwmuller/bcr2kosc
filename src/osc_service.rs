@@ -11,10 +11,10 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use crate::midi_io::{MidiSink, MidiStream};
-use crate::translator::{midi_msg_to_osc, osc_pkt_to_midi};
+use crate::translator::ServerTranslationSet;
 use crate::PGM;
 use futures::future::join;
-use futures::{pin_mut, select, FutureExt, Sink, SinkExt, Stream, StreamExt, Future};
+use futures::{pin_mut, select, Future, FutureExt, Sink, SinkExt, Stream, StreamExt};
 use log::{debug, error, info};
 use midi_control::MidiMessage;
 use rosc::encoder::encode;
@@ -66,6 +66,7 @@ impl BCtlOscSvc {
     pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
         // We use a single UDP socket for sending and receiving.
         let udp_socket = Arc::new(UdpSocket::bind(self.osc_in_addr).await?);
+        let xset = Arc::new(ServerTranslationSet::get_test_set());
 
         // MIDI -> OSC
         let midi_rx = MidiStream::bind(&self.midi_in_port_name)?;
@@ -73,12 +74,12 @@ impl BCtlOscSvc {
             "{PGM} is listening for MIDI on \"{}\"",
             self.midi_in_port_name
         );
-        let midi_to_osc = self.start_midi_to_osc(midi_rx, &udp_socket);
+        let midi_to_osc = self.start_midi_to_osc(midi_rx, &udp_socket, &xset);
 
         // OSC -> MIDI
         let midi_tx = MidiSink::bind(&self.midi_out_port_name)?;
         info!("{PGM} will send MIDI to \"{}\".", self.midi_out_port_name);
-        let osc_to_midi = self.start_osc_to_midi(&udp_socket, midi_tx);
+        let osc_to_midi = self.start_osc_to_midi(&udp_socket, midi_tx, &xset);
 
         join(midi_to_osc, osc_to_midi).await;
         Ok(())
@@ -94,13 +95,15 @@ impl BCtlOscSvc {
         &self,
         receiver: impl Stream<Item = MidiMessage> + Send + 'static,
         udp_socket: &Arc<UdpSocket>,
-    ) -> impl Future<Output=()>  {
+        xset: &Arc<ServerTranslationSet>,
+    ) -> impl Future<Output = ()> {
         let stopper = self.stopper.clone();
         run_midi_to_osc(
             stopper,
             receiver,
             self.osc_out_addrs.clone(),
             udp_socket.clone(),
+            xset.clone(),
         )
     }
 
@@ -108,12 +111,10 @@ impl BCtlOscSvc {
         &self,
         udp_socket: &Arc<UdpSocket>,
         dest: impl Sink<MidiMessage> + Send + 'static,
-    ) -> impl Future<Output=()> {
-        let stopper = self.stopper.clone();
-        let udp_socket = udp_socket.clone();
-        run_osc_to_midi(stopper, udp_socket, dest)
+        xset: &Arc<ServerTranslationSet>,
+    ) -> impl Future<Output = ()> {
+        run_osc_to_midi(self.stopper.clone(), udp_socket.clone(), dest, xset.clone())
     }
-
 }
 
 async fn wait_on_stopping(stopper: StopMechanism) {
@@ -125,12 +126,13 @@ async fn run_midi_to_osc<SRC>(
     src: SRC,
     osc_out_addrs: Arc<Vec<SocketAddr>>,
     dest: Arc<UdpSocket>,
+    xset: Arc<ServerTranslationSet>,
 ) where
     SRC: Stream<Item = MidiMessage> + Send,
 {
     let stopper = stopper.clone();
     select! {
-        _ = run_midi_to_osc_loop(src, osc_out_addrs, dest).fuse() => {},
+        _ = run_midi_to_osc_loop(src, osc_out_addrs, dest, xset).fuse() => {},
         _ = wait_on_stopping(stopper).fuse() => {}
     };
     info!("{PGM} OSC sender stopped.");
@@ -140,13 +142,14 @@ async fn run_midi_to_osc_loop<SRC>(
     src: SRC,
     osc_out_addrs: Arc<Vec<SocketAddr>>,
     dest: Arc<UdpSocket>,
+    xset: Arc<ServerTranslationSet>,
 ) where
     SRC: Stream<Item = MidiMessage> + Send,
 {
     pin_mut!(src);
     info!("{PGM} will send OSC from UDP port {:?}.", dest.local_addr());
     while let Some(midi_msg) = src.next().await {
-        if let Some(pkt) = midi_msg_to_osc(midi_msg) {
+        if let Some(pkt) = xset.midi_msg_to_osc(midi_msg) {
             let e = encode(&pkt);
             match e {
                 Ok(buf) => {
@@ -164,19 +167,23 @@ async fn run_midi_to_osc_loop<SRC>(
     info!("{PGM} OSC sender source exhausted.");
 }
 
-async fn run_osc_to_midi<D>(stopper: StopMechanism, src: Arc<UdpSocket>, dest: D)
-where
+async fn run_osc_to_midi<D>(
+    stopper: StopMechanism,
+    src: Arc<UdpSocket>,
+    dest: D,
+    xset: Arc<ServerTranslationSet>,
+) where
     D: Sink<MidiMessage>,
 {
     let stopper = stopper.clone();
     select! {
-        _ = run_osc_to_midi_loop(src, dest).fuse() => {},
+        _ = run_osc_to_midi_loop(src, dest,xset).fuse() => {},
         _ = wait_on_stopping(stopper).fuse() => {}
     };
     info!("{PGM} OSC listener stopped.");
 }
 
-async fn run_osc_to_midi_loop<D>(src: Arc<UdpSocket>, dest: D)
+async fn run_osc_to_midi_loop<D>(src: Arc<UdpSocket>, dest: D, xset: Arc<ServerTranslationSet>)
 where
     D: Sink<MidiMessage>,
 {
@@ -203,7 +210,7 @@ where
                             vec.copy_within(len..len + rlen, 0);
                             next = rlen;
                         }
-                        for m in osc_pkt_to_midi(&pkt) {
+                        for m in xset.osc_pkt_to_midi(&pkt) {
                             dest.feed(m)
                                 .await
                                 .unwrap_or_else(|_| error!("OSC pkt feed failed."));

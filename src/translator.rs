@@ -1,126 +1,134 @@
-//! OSC 1.0 supports only these data types: Int, Float, String, Blob, and Time.
-//! Reaper expects Float(1.0) for Boolean true, Float(0.0) for false.
+//! Translation from OSC to MIDI and vice versa.
+//!
+//! Notes:
+//! * OSC 1.0 supports only these data types: Int, Float, String, Blob, and Time.
+//! * Reaper expects Float(1.0) for Boolean true, Float(0.0) for false.
 //!
 
 use std::iter;
 
-use log::{debug, error, warn};
+use log::{error};
 use midi_control::*;
 use rosc::address::{Matcher, OscAddress};
-use rosc::{OscMessage, OscPacket, OscType};
+use rosc::{OscMessage, OscPacket, OscType, OscBundle, OscTime};
 
-// pub fn midi_to_osc(midi: impl Stream<Item = MidiMessage>) -> impl Stream<Item = OscPacket> {
-//     stream! {
-//         while let Some(op) = midi.next().await {
-//             let i = midi_msg_to_osc(&op);
-//             for o in i {yield o};
-//         }
-//     }
-// }
+mod ccx;
+pub use crate::translator::ccx::*;
 
-/// Translates a MIDI msg to an OSC packet, if there is at least one valid
-/// mapping to an OSC message. The packet may contain multiple messages.
-pub fn midi_msg_to_osc(midi_msg: MidiMessage) -> Option<OscPacket> {
+/// Specifies a set of translations between OSC and MIDI messages.
+pub struct ServerTranslationSet(Vec<Box<dyn Translator>>);
 
-    match midi_msg {
-        MidiMessage::ControlChange(
-            Channel::Ch1,
-            ControlEvent {
-                control: 0x41,
-                value,
-            },
-        ) => {
-            //info!("Translating this MIDI msg: {midi_msg:?}");
+pub type MMIterator = Box<dyn Iterator<Item = MidiMessage>>;
 
-            // Strangely, Reaper wants boolean values as floats, and insists
-            // on "1.0" or "0.0".
-            let value = cv_to_bool(value);
-            Some(OscPacket::Message(OscMessage {
-                addr: "/key/1".to_string(),
-                args: [OscType::Float(if value { 1.0 } else { 0.0 })].to_vec(),
-                //                    args: [OscType::Bool(value)].to_vec(),
-            }))
-        }
-        MidiMessage::Invalid => {
-            warn!("Invalid MIDI input.");
+impl ServerTranslationSet {
+    /// Create a new ServerTranslationSet from a vector of translators.
+    pub fn new(set: Vec<Box<dyn Translator>>) -> ServerTranslationSet {
+        ServerTranslationSet(set)
+    }
+
+    pub fn get_test_set() -> ServerTranslationSet {
+        Self::new(vec![
+            ControlChangeRangeTranslator::new(Channel::Ch1, 1, 0, 127, "/encoder/1"),
+            ControlChangeBoolTranslator::new(Channel::Ch1, 0x41, 0, 127, "/key/1"),
+        ])
+    }
+
+    /// Translates a MIDI msg to an OSC packet, if there is at least one valid
+    /// mapping to an OSC message. The packet may contain multiple messages.
+    pub fn midi_msg_to_osc(&self, midi_msg: MidiMessage) -> Option<OscPacket> {
+        let msgs: Vec<OscPacket> = self
+            .0
+            .iter()
+            .map(|x| x.midi_to_osc(&midi_msg))
+            .filter_map(|i| i)
+            .collect();
+        if msgs.is_empty() {
             None
+        } else if msgs.len() == 1 {
+            Some(msgs.into_iter().last().unwrap())
+        } else {
+            Some(OscPacket::Bundle(OscBundle { timetag: OscTime{ seconds: 0, fractional: 0 }, content: msgs}))
         }
-        _ => {
-            debug!("Ignored MIDI msg: {midi_msg:?}");
-            None
+    }
+
+    pub fn osc_pkt_to_midi(&self, op: &OscPacket) -> MMIterator {
+        match op {
+            OscPacket::Message(m) => self.osc_msg_to_midi(m),
+            OscPacket::Bundle(b) => {
+                let sub = b
+                    .content
+                    .iter()
+                    .map(|p| self.osc_pkt_to_midi(p))
+                    .collect::<Vec<MMIterator>>();
+                Box::new(sub.into_iter().flatten())
+            }
+        }
+    }
+    fn osc_msg_to_midi(&self, om: &OscMessage) -> Box<dyn Iterator<Item = MidiMessage> + Send> {
+        let test_osc = OscAddress::new("/key/1".to_string()).unwrap();
+        let matcher = Matcher::new(&om.addr);
+        if matcher.is_err() {
+            error!(
+                "Failed to create OSC matcher for incoming address: {}",
+                &om.addr
+            );
+            return Box::new(iter::empty());
+        }
+        let matcher = matcher.unwrap();
+        if matcher.match_address(&test_osc) {
+            let state: Option<u8> = match om.args[0] {
+                OscType::Float(v) => {
+                    if v == 0.0 {
+                        Some(0)
+                    } else if v == 1.0 {
+                        Some(127)
+                    } else {
+                        None
+                    }
+                }
+                //| OscType::Float(v) | OscType::Long(v) | OscType::Double(v) =>
+                //match v {0 => Some(false), 1 => Some(true) },
+                OscType::Bool(v) => Some(bool_to_cv(v)),
+                _ => None,
+            };
+            if state.is_none() {
+                error!("Unable to decode OSC arg: {om:?}");
+                Box::new(iter::empty())
+            } else {
+                Box::new(iter::once(control_change(
+                    Channel::Ch1,
+                    0x41,
+                    state.unwrap(),
+                )))
+            }
+        } else {
+            Box::new(iter::empty())
         }
     }
 }
 
-//fn cv_to_bool(v: u8) -> bool { if v < 64 {false} else {true}}
+pub trait Translator {
+    fn midi_to_osc(&self, midi: &MidiMessage) -> Option<OscPacket>;
+    fn osc_to_midi(&self, addr_matcher: Matcher, args: &[OscType]) -> Option<MidiMessage>;
+}
+
+//struct NoteOnTranslator(Channel, MidiNote, String);
+
+/// Translate a MIDI control value to a normalized float (0.0 thru 1.0).
+fn cv_to_normalized_float(v: u8, low: u8, high: u8) -> f32 {
+    (v - low) as f32 / (high - low) as f32
+}
+
+/// Translate a normalized float (0.0 thru 1.0) to a MIDI control value.
+fn normalized_float_to_cv(v: f32, low: u8, high: u8) -> u8 {
+    (v * (high - low) as f32).round() as u8 + low
+}
+
+/// Translate a Boolean to a control value.
 fn bool_to_cv(v: bool) -> u8 {
     if v {
         127
     } else {
         0
-    }
-}
-
-fn cv_to_bool(v: u8) -> bool {
-    v >= 64
-}
-
-// pub fn osc_to_midi<I: Stream<Item = OscPacket> + Unpin>(
-//     mut osc: I,
-// ) -> impl Stream<Item = MidiMessage> {
-//     stream! {
-//         while let Some(op) = osc.next().await {
-//             let i = osc_pkt_to_midi(&op);
-//             for m in i {yield m};
-//         }
-//     }
-// }
-
-pub fn osc_pkt_to_midi(op: &OscPacket) -> impl Iterator<Item = MidiMessage> + Send + '_ {
-    match op {
-        OscPacket::Message(m) => osc_msg_to_midi(m),
-        OscPacket::Bundle(b) => Box::new(b.content.iter().map(|p| osc_pkt_to_midi(p)).flatten()),
-    }
-}
-
-fn osc_msg_to_midi(om: &OscMessage) -> Box<dyn Iterator<Item = MidiMessage> + Send> {
-    let test_osc = OscAddress::new("/key/1".to_string()).unwrap();
-    let matcher = Matcher::new(&om.addr);
-    if matcher.is_err() {
-        error!(
-            "Failed to create OSC matcher for incoming address: {}",
-            &om.addr
-        );
-        return Box::new(iter::empty());
-    }
-    let matcher = matcher.unwrap();
-    if matcher.match_address(&test_osc) {
-        let state: Option<u8> = match om.args[0] {
-            OscType::Float(v) => {
-                if v == 0.0 {
-                    Some(0)
-                } else if v == 1.0 {
-                    Some(127)
-                } else {
-                    None
-                }
-            }
-            //| OscType::Float(v) | OscType::Long(v) | OscType::Double(v) =>
-            //match v {0 => Some(false), 1 => Some(true) },
-            OscType::Bool(v) => Some(bool_to_cv(v)),
-            _ => None,
-        };
-        if state.is_none() {
-            error!("Unable to decode OSC arg: {om:?}");
-            Box::new(iter::empty())
-        } else {
-            Box::new(iter::once(control_change(
-                Channel::Ch1,
-                0x41,
-                state.unwrap(),
-            )))
-        }
-    } else {
-        Box::new(iter::empty())
     }
 }
