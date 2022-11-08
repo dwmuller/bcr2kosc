@@ -3,12 +3,11 @@
 //! A service to translate between MIDI and OSC, specifically targeting
 //! Behringer B-Controllers (the B-Control Rotary and B-Control Faderport).
 //!
-use std::task::Poll;
 use std::time::Duration;
 use std::{error::Error, net::SocketAddr};
 
 use clap::{Parser, Subcommand};
-use futures::{future, pin_mut, select, FutureExt, SinkExt, Stream, StreamExt, TryStreamExt};
+use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
 use midi_control::MidiMessage;
 
@@ -41,24 +40,13 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// List MIDI ports.
-    List {},
+    ListPorts {},
     /// Listen to a port and display received MIDI.
     ///
     /// Useful for debugging.
     Listen {
         /// The name of the port to listen to. Use the list command to see ports.
         midi_in: String,
-    },
-    /// List information about a specific B-Control.
-    Info {
-        /// The name of the MIDI port recieve data from.
-        midi_in: String,
-        /// The name of the MIDI port to send data to.
-        midi_out: String,
-        /// The device number of the B-Control, which can be one through 16.
-        /// Defaults to 1.
-        #[arg(default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
-        device: u8,
     },
     /// Find and list Behringer B-Control devices.
     Find {
@@ -69,6 +57,35 @@ enum Commands {
         midi_in: String,
         /// The name of the MIDI port to send data to.
         midi_out: String,
+    },
+    /// Get global settings BCL from a B-Control.
+    GetGlobal {
+        /// The name of the MIDI port recieve data from.
+        midi_in: String,
+        /// The name of the MIDI port to send data to.
+        midi_out: String,
+        /// The device number of the B-Control, which can be one through 16.
+        /// Defaults to 1.
+        #[arg(default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
+        device: u8,
+    },
+    /// Get preset information from a B-Control.
+    GetPreset {
+        /// The name of the MIDI port recieve data from.
+        midi_in: String,
+        /// The name of the MIDI port to send data to.
+        midi_out: String,
+        /// The device number of the B-Control, which can be one through 16.
+        /// Defaults to 1.
+        #[arg(default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
+        device: u8,
+        /// The number of the preset to retrieve, from 1 to 32, "temp", or
+        /// "all". Defaults to temp.
+        ///
+        /// If you specify "all", you get a dump of the device's global
+        /// settings, followed by all filled memory presets,
+        #[arg(default_value_t = PresetIndex::Temporary, value_parser=parse_preset_arg)]
+        preset: PresetIndex,
     },
     /// Start an OSC service/client pair that translates to and from MIDI.
     Serve {
@@ -83,9 +100,21 @@ enum Commands {
         osc_out_addrs: Vec<SocketAddr>,
     },
 }
-
-type LocalErr = Box<dyn Error>;
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
+fn parse_preset_arg(s: &str) -> Result<PresetIndex> {
+    match s {
+        "all" => Ok(PresetIndex::All),
+        "temp" => Ok(PresetIndex::Temporary),
+        _ => {
+            let num = s.parse::<u8>().ok();
+            match num {
+                Some(n) if (1u8..=32u8).contains(&n) => Ok(PresetIndex::Preset(n - 1)),
+                _ => Err(LocalError::from("invalid preset index")),
+            }
+        }
+    }
+}
+type LocalError = Box<dyn Error + Send + Sync + 'static>;
+type Result<T> = std::result::Result<T, LocalError>;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -95,13 +124,19 @@ async fn main() -> Result<()> {
         .init()
         .unwrap();
     match &cli.command {
-        Some(Commands::List {}) => Ok(list_ports()),
+        Some(Commands::ListPorts {}) => Ok(list_ports()),
         Some(Commands::Listen { midi_in }) => listen(midi_in).await,
-        Some(Commands::Info {
+        Some(Commands::GetGlobal {
             midi_in,
             midi_out,
             device,
-        }) => info(midi_in, midi_out, *device - 1).await,
+        }) => get_global(midi_in, midi_out, *device).await,
+        Some(Commands::GetPreset {
+            midi_in,
+            midi_out,
+            device,
+            preset,
+        }) => get_preset(midi_in, midi_out, *device, *preset).await,
         Some(Commands::Find {
             delay,
             midi_in,
@@ -150,76 +185,33 @@ async fn listen(port_name: &str) -> Result<()> {
     Ok(())
 }
 
-async fn info(in_port_name: &str, out_port_name: &str, device: u8) -> Result<()> {
-    let midi_in = MidiStream::bind(in_port_name)?;
-    let midi_in = midi_in
-        // Filter out anything but B-Control sysex messages.
-        .filter_map(|m| async { BControlSysEx::try_from(m).ok() })
-        // Filter out anything which is not from the device we queried.
-        .filter_map(|sysex| {
-            future::ready(if !sysex.device.match_device(device) {
-                None
-            } else {
-                Some(sysex)
-            })
-        });
-    // Filter out anything but BCL block lines, and end the stream when the
-    // BCL block ends. Return each line wrapped in a Result, indicating an
-    // error if the line index is not as expected.
-    let mut next_line_index = 0;
-    let midi_in = midi_in.filter_map(|sysex| {
-        future::ready(
-            if let BControlCommand::SendBclMessage { msg_index, text } = sysex.command {
-                if msg_index == next_line_index {
-                    next_line_index += 1;
-                    Some(Ok(text))
-                } else {
-                    Some(Err(LocalErr::from(
-                        "Missing or out-of-order BCL lines received.",
-                    )))
-                }
-            } else {
-                None
-            },
-        )
-    });
-    let done = std::sync::Mutex::new(false);
-    let stop_fut = future::poll_fn(|_cx| {
-        if *done.lock().unwrap() {
-            Poll::Ready(())
-        } else {
-            Poll::Pending
-        }
-    });
-    let midi_in = midi_in.take_until(stop_fut).inspect(|item| {
-        *done.lock().unwrap() = match item {
-            Ok(text) => text == "$end",
-            Err(_) => true,
-        }
-    });
+async fn get_global(in_port_name: &str, out_port_name: &str, device: u8) -> Result<()> {
+    let mut midi_in = MidiStream::bind(in_port_name)?;
+    let mut midi_out = MidiSink::bind(out_port_name)?;
+    for line in get_global_bcl(device - 1, &mut midi_in, &mut midi_out).await? {
+        println!("{line}");
+    }
+    Ok(())
+}
 
-    // Gather the BCL into a vector of lines.
-    let lines = midi_in.try_collect::<Vec<String>>();
-
-    let bdata = BControlSysEx {
-        device: DeviceID::Device(device),
-        model: BControlModel::Any,
-        command: BControlCommand::RequestData(PresetIndex::Temporary),
-    };
-    MidiSink::bind(out_port_name)?
-        .send(MidiMessage::from(bdata))
-        .await?;
-    for line in lines.await? {
+async fn get_preset(
+    in_port_name: &str,
+    out_port_name: &str,
+    device: u8,
+    preset: PresetIndex,
+) -> Result<()> {
+    let mut midi_in = MidiStream::bind(in_port_name)?;
+    let mut midi_out = MidiSink::bind(out_port_name)?;
+    for line in get_preset_bcl(device - 1, preset, &mut midi_in, &mut midi_out).await? {
         println!("{line}")
     }
-    // midi_in.for_each(|(n, text)| future::ready(println!("{n:06} {text}"))).await;
     Ok(())
 }
 
 async fn list_bcontrols(in_port_name: &str, out_port_name: &str, delay: u64) -> Result<()> {
     let timeout = tokio::time::sleep(Duration::from_secs(delay));
     let midi_in = MidiStream::bind(in_port_name)?
-        .filter_map(|m| async { BControlSysEx::try_from(m).ok() })
+        .filter_map(|m| async move { BControlSysEx::try_from(&m).ok() })
         .take_until(timeout);
 
     let bdata = BControlSysEx {
@@ -238,7 +230,7 @@ async fn list_bcontrols(in_port_name: &str, out_port_name: &str, delay: u64) -> 
         }
     };
     MidiSink::bind(out_port_name)?
-        .send(MidiMessage::from(bdata))
+        .send(MidiMessage::from(&bdata))
         .await?;
     midi_in.for_each(action).await;
     Ok(())

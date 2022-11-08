@@ -12,6 +12,9 @@ use std::{error::Error, fmt::Display};
 
 use midi_control::{message::SysExType, sysex::ManufacturerId, MidiMessage, SysExEvent};
 
+mod io;
+pub use io::*;
+
 /// Behringer's MIDI manufacturer ID.
 pub const BEHRINGER: ManufacturerId = ManufacturerId::ExtId(0x20u8, 0x32u8);
 
@@ -165,13 +168,13 @@ impl BControlSysEx {
     }
 }
 
-impl From<BControlSysEx> for Vec<u8> {
-    fn from(b: BControlSysEx) -> Self {
+impl From<&BControlSysEx> for Vec<u8> {
+    fn from(b: &BControlSysEx) -> Self {
         b.to_midi()
     }
 }
-impl From<BControlSysEx> for MidiMessage {
-    fn from(bc: BControlSysEx) -> Self {
+impl From<&BControlSysEx> for MidiMessage {
+    fn from(bc: &BControlSysEx) -> Self {
         let bdata = bc.to_midi();
         let req = MidiMessage::SysEx(SysExEvent {
             r#type: SysExType::Manufacturer(BEHRINGER),
@@ -181,10 +184,10 @@ impl From<BControlSysEx> for MidiMessage {
     }
 }
 
-impl TryFrom<MidiMessage> for BControlSysEx {
+impl TryFrom<&MidiMessage> for BControlSysEx {
     type Error = ParseError;
 
-    fn try_from(value: MidiMessage) -> Result<Self, Self::Error> {
+    fn try_from<'a>(value: &MidiMessage) -> Result<Self, Self::Error> {
         if let MidiMessage::SysEx(SysExEvent {
             r#type: SysExType::Manufacturer(BEHRINGER),
             data,
@@ -360,6 +363,16 @@ impl PresetIndex {
         }
     }
 }
+impl Display for PresetIndex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PresetIndex::Preset(n) => write!(f, "{n}"),
+            PresetIndex::All => write!(f, "all"),
+            PresetIndex::Temporary => write!(f, "temp"),
+        }
+    }
+}
+
 #[inline]
 fn u8_from_midi(m: &[u8]) -> Result<u8, ParseError> {
     if m.is_empty() {
