@@ -1,4 +1,3 @@
-- Logging
 - Listening for OSC cxns
 - OSC definition, parsing, generation
 - BCR preset mgmt
@@ -10,10 +9,13 @@ Necessary:
 - Encapsulate OSC I/O into Stream/Sink based on rosc.
   - Mainly for symmetry. Worthwhile?
 - Implement bidirectional OSC/MIDI mapping.
-- Keep all task spawning & mgmt in one module.
-  - Consider # of tasks. Output may wait frequently. Mapping may be CPU intensive.
 - Parse BCL to determine device configuration, generate MIDI-OSC mappings.
 - Figure out how to store/load MIDI-OSC mappings.
+
+Architecture:
+
+- MIDI->OSC and OSC->MIDI apps already exist. Should we leverage that, or at
+least breaks ours out as an app separate from BC utilities? Probably.
 
 Useful:
 - Read/write config file.
@@ -27,14 +29,15 @@ Would be nice:
   - Example: UDP socket per target client.
 - Security? This is really mainly for use on a safe network.
 - Dynamic client configuration
-  - Maybe auto-discover client based on their read requests.
+  - Can we auto-discover clients?
 - Break parts out as library crates:
   - BCL/B-Code parser(s)
   - Runtime-agnostic OSC IO wrappers.
   - Runtime-agnostic MIDI IO wrappers (possibly as an enhancement to midir).
 - Figure out how different presets can be used.
   - Maybe preset # should be represented in OSC addresses.
-  - Would have to track controller's curent preset.
+  - Would have to track controller's curent preset. B-Controls do not announce
+    preset changes.
   - Not clear how this would interact with the "scratch" preset.
 - Maybe simplify MidiSink implementation?
 - Check for blocking I/O in MidiSink?

@@ -9,18 +9,12 @@ authors = [ "dan.muller@dmuller.us" ]
 [dependencies]
 midir = {version = "0.8.0", features = [] }
 clap = { version = "4.0.14", features = ["derive"] }
-exitcode = "1.1.2"
 log = "0.4.17"
 stderrlog = "0.5.3"
 rosc = "0.9.1"
 midi-control = "0.2.1"
-tokio-util = { version = "0.7.4", features = ["codec", "net"] }
-async-stream = "0.3.3"
 tokio = { version = "1.21.2", features = ["full"] }
-bytes = "1.2.1"
-tokio-stream = { version = "0.1.11", features = ["net", "sync"] }
 futures = "0.3.25"
-futures-sink = "0.3.25"
 pin-project = "1.0.12"
 
 

@@ -1,3 +1,4 @@
+#![deny(unused_crate_dependencies)]
 #![deny(missing_docs)]
 
 //! A service to translate between MIDI and OSC, specifically targeting
