@@ -1,12 +1,19 @@
 //! Behringer's MIDI System Exclusive syntax for B-Controls
 //!
 //! Types to represent system exclusive messages for Behringer's
-//! BCR2000 and BCF2000 MIDI controllers.
+//! BCR2000 and BCF2000 MIDI controllers, and methods to translate them to and
+//! from `midi_control::MidiMessage::SysEx` enum variants.
+//! 
+//! The `io` sub-module, which is re-exported here, contains functions for
+//! requesting and receiving specific types of data from a B-Control when given
+//! a `Stream` and `Sink` of `MidiMessage` objects. See `midi-io`.
 //!
 //! This is based on the amazing reverse engineering work by Mark van den
 //! Berg, published on https://mountainutilities.eu/. It follows patterns
 //! used in the midi_msg library crate and uses some types from it.
 //!
+
+// TODO: Review overhead introduced by using MidiMessage. Consider bypassing.
 
 use std::{error::Error, fmt::Display};
 

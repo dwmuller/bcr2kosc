@@ -1,3 +1,5 @@
+//! Easy I/O of B-Control messages via `MidiMessage` `Stream` and `Sink`.
+
 use std::error::Error;
 
 use futures::{Sink, SinkExt, Stream, StreamExt};

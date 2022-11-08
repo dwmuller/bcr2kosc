@@ -1,7 +1,10 @@
 #![deny(missing_docs)]
-//! A module to create and control MIDI Stream and Sync structs that communicate
-//! over streams in terms of data types defined by the `midi-control` crate. For
-//! internal implementation, it relies on the platform-agnostic `midir` crate.
+//! Asynchronous MIDI I/O via `Stream` and `Sink`.
+//! 
+//! A module that wraps MIDI port I/O mechanisms with MIDI `Stream` and `Sink`
+//! structs that work with types from the `midi-control` crate. For internal
+//! implementation, it relies on the platform-agnostic `midir` crate.
+//! 
 //! This module is runtime-agnostic, and is a good candidate for a distinct crate.
 
 use std::error::Error;

@@ -1,3 +1,5 @@
+//! `Translator` implementations for Control Change MIDI.
+
 use super::*;
 
 pub struct ControlChangeRangeTranslator {
