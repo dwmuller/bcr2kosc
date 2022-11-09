@@ -11,18 +11,17 @@ use clap::{Parser, Subcommand};
 use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
 use midi_control::MidiMessage;
-
-mod b_control;
-mod midi_io;
-use b_control::*;
-mod bcl;
-
-mod osc_service;
-use osc_service::*;
 use tokio::signal;
 
-use crate::midi_io::{MidiSink, MidiStream};
+mod b_control;
+mod bcl;
+mod midi_io;
+mod osc_service;
 mod translator;
+
+use crate::b_control::*;
+use crate::midi_io::{MidiSink, MidiStream};
+use crate::osc_service::*;
 
 /// Program name, used in a variety of log messages.
 pub const PGM: &str = "bcr2kosc";
