@@ -7,8 +7,6 @@
 //! 
 //! This module is runtime-agnostic, and is a good candidate for a distinct crate.
 
-use std::error::Error;
-use std::fmt::Display;
 use std::pin::Pin;
 use std::task::Poll;
 
@@ -20,105 +18,30 @@ use midi_control::MidiMessage;
 use midir::{MidiIO, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
 use pin_project::pin_project;
 
-/// Error enum for errors originating in or evoked by `midi-io`.
-#[derive(Debug)]
-pub enum MidiIoError {
-    ChannelSender(mpsc::SendError),
-    StdChannelSender(std::sync::mpsc::SendError<MidiMessage>),
-    MidiInit(midir::InitError),
-    MidiSend(midir::SendError),
-    MidiInputConnect(midir::ConnectError<MidiInput>),
-    SpawnError(futures::task::SpawnError),
-    Regular(ErrorKind),
+mod error;
+pub use error::*;
+
+/// Provides a snapshot of input port names. This list can differ on
+/// subsequent calls, as MIDI devices are connected or disconnected.
+pub fn input_ports() -> Vec<String> {
+    let midi_in = MidiInput::new("{PGM} list_ports").unwrap();
+    midi_in
+        .ports()
+        .iter()
+        .map(|p| midi_in.port_name(p).unwrap())
+        .collect()
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum ErrorKind {
-    MidiPortNameNotFound,
-    NotConnected,
+/// Provides a snapshot of input port names. This list can differ on
+/// subsequent calls, as MIDI devices are connected or disconnected.
+pub fn output_ports() -> Vec<String> {
+    let midi_out = MidiOutput::new("{PGM} list_ports").unwrap();
+    midi_out
+        .ports()
+        .iter()
+        .map(|p| midi_out.port_name(p).unwrap())
+        .collect()
 }
-impl Display for ErrorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match *self {
-            ErrorKind::MidiPortNameNotFound => "named MIDI port not found",
-            ErrorKind::NotConnected => "not connected to a MIDI port",
-        }.fmt(f)
-    }
-}
-
-impl Display for MidiIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            MidiIoError::ChannelSender(e) => e.fmt(f),
-            MidiIoError::StdChannelSender(e) => e.fmt(f),
-            MidiIoError::MidiInit(e) => e.fmt(f),
-            MidiIoError::MidiSend(e) => e.fmt(f),
-            MidiIoError::MidiInputConnect(e) => e.fmt(f),
-            MidiIoError::SpawnError(e) => e.fmt(f),
-            MidiIoError::Regular(k) => k.fmt(f),
-        }
-    }
-}
-
-impl Error for MidiIoError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-
-    fn cause(&self) -> Option<&dyn Error> {
-        self.source()
-    }
-}
-
-impl From<ErrorKind> for MidiIoError {
-    fn from(value: ErrorKind) -> Self {
-        MidiIoError::Regular(value)
-    }
-}
-impl From<mpsc::SendError> for MidiIoError {
-    fn from(e: mpsc::SendError) -> Self {
-        MidiIoError::ChannelSender(e)
-    }
-}
-impl From<std::sync::mpsc::SendError<MidiMessage>> for MidiIoError {
-    fn from(e: std::sync::mpsc::SendError<MidiMessage>) -> Self {
-        MidiIoError::StdChannelSender(e)
-    }
-}
-impl From<midir::InitError> for MidiIoError {
-    fn from(e: midir::InitError) -> Self {
-        MidiIoError::MidiInit(e)
-    }
-}
-
-impl From<midir::SendError> for MidiIoError {
-    fn from(e: midir::SendError) -> Self {
-        MidiIoError::MidiSend(e)
-    }
-}
-
-impl From<midir::ConnectError<MidiInput>> for MidiIoError {
-    fn from(e: midir::ConnectError<MidiInput>) -> Self {
-        MidiIoError::MidiInputConnect(e)
-    }
-}
-impl From<futures::task::SpawnError> for MidiIoError {
-    fn from(e: futures::task::SpawnError) -> Self {
-        MidiIoError::SpawnError(e)
-    }
-}
-pub type Result<T> = std::result::Result<T, MidiIoError>;
-
-pub fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port> {
-    let ports = midi_io.ports();
-    let wanted = Ok(port_name.to_string());
-    let port = ports.iter().find(|&x| midi_io.port_name(&x) == wanted);
-    match port {
-        Some(p) => Ok(p.clone()),
-        None => Err(MidiIoError::Regular(ErrorKind::MidiPortNameNotFound)),
-    }
-}
-
 /// A stream that provides MIDI messages recieved from a named MIDI I/O port.
 /// The stream is backed by an unbounded channel. The connection to the port is
 /// closed when the stream is dropped.
@@ -275,24 +198,14 @@ impl Sink<MidiMessage> for MidiSink {
     }
 }
 
-/// Provides a snapshot of input port names. This list can differ on
-/// subsequent calls, as MIDI devices are connected or disconnected.
-pub fn input_ports() -> Vec<String> {
-    let midi_in = MidiInput::new("{PGM} list_ports").unwrap();
-    midi_in
-        .ports()
-        .iter()
-        .map(|p| midi_in.port_name(p).unwrap())
-        .collect()
+
+fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port> {
+    let ports = midi_io.ports();
+    let wanted = Ok(port_name.to_string());
+    let port = ports.iter().find(|&x| midi_io.port_name(&x) == wanted);
+    match port {
+        Some(p) => Ok(p.clone()),
+        None => Err(MidiIoError::Regular(ErrorKind::MidiPortNameNotFound)),
+    }
 }
 
-/// Provides a snapshot of input port names. This list can differ on
-/// subsequent calls, as MIDI devices are connected or disconnected.
-pub fn output_ports() -> Vec<String> {
-    let midi_out = MidiOutput::new("{PGM} list_ports").unwrap();
-    midi_out
-        .ports()
-        .iter()
-        .map(|p| midi_out.port_name(p).unwrap())
-        .collect()
-}
