@@ -23,22 +23,36 @@ OSC pattern                 range
 
 Function keys have BCL control numbers 53-56, but don't send or receive data.
 
+Note that the max encoder group range can vary, depending on how many encoder
+group buttons are being used for something else.
+
 OSC pattern                          BCL#
-/push-encoder/[1-32]/button           1-32   egroup range varies
-/key/[1-16]                          33-48  
+/push-encoder/[1-8]/[1-4]/button     1-32   column, then encoder group
+/key/[1-8]/[1-2]                     33-48  column, then row
 /user/[1-4]                          49-52  button group lower right
-/group/[1-4]                         57-60  available based on egroups #
+/group/[1-4]                         57-60  if used, reduced egroup max
 /footswitch/[1-2]                    61-62  BCF has only one
 
 # Encoders
 
 OSC pattern                          BCL#
-/push-encoder/[1-32]/encoder          1-32   egroup range varies
-/encoder/[1-24]                      33-56   BCR only
+/push-encoder/[1-8]/[1-4]/encoder    1-32  egroup range varies
+/encoder/[1-8]/[1-3]                 3-56  BCR only: column, row
 
 # Faders
 /fader/[1-9]                          0-8    BCF only, 9 is foot input
 
+# Alternate arrangement based on grids
+
+/row/1/col/[1-8]/button
+/row/1/col/[1-8]/encoder
+/row/2/col/[1-8]/button
+/row/3/col/[1-8]/button
+/row/4/col/[1-8]/encoder
+/row/5/col/[1-8]/encoder
+/row/6/col/[1-8]/encoder
+/egroup/row/[1-2]/col/[1-2]/button
+/user/row/[1-2]/col/[1-2]/button
 
 rosc has a Matcher class, but it's not very well thought out. You can only ask a
 Matcher if a given address matches its pattern; you get no information about the
