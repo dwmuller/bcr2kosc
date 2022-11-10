@@ -282,7 +282,8 @@ REGIONID_NUMBER i/region_id/@/number
 LOOP_START_TIME f/loop/start/time
 LOOP_END_TIME f/loop/end/time
 
-MASTER_VOLUME n/master/volume s/master/volume/str
+#MASTER_VOLUME n/master/volume s/master/volume/str
+MASTER_VOLUME n/encoder/1
 MASTER_PAN n/master/pan s/master/pan/str
 MASTER_VU n/master/vu
 MASTER_VU_L n/master/vu/L

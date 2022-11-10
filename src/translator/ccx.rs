@@ -32,7 +32,7 @@ impl Translator for ControlChangeRangeTranslator {
     fn midi_to_osc(&self, midi: &MidiMessage) -> Option<OscPacket> {
         use MidiMessage::*;
         if let ControlChange(ch, ControlEvent { control, value }) = midi {
-            if (self.channel == Channel::from(*ch)) && (self.control == *control) {
+            if (&self.channel == ch) && (self.control == *control) {
                 return Some(OscPacket::Message(OscMessage {
                     addr: self.address.clone(),
                     args: vec![OscType::Float(cv_to_normalized_float(
@@ -44,7 +44,7 @@ impl Translator for ControlChangeRangeTranslator {
         None
     }
 
-    fn osc_to_midi(&self, addr_matcher: Matcher, args: &[OscType]) -> Option<MidiMessage> {
+    fn osc_to_midi(&self, addr_matcher: &Matcher, args: &[OscType]) -> Option<MidiMessage> {
         // TODO: Performance nightmare here:
         if addr_matcher.match_address(&OscAddress::new(self.address.clone()).unwrap()) {
             return Some(MidiMessage::ControlChange(
@@ -118,7 +118,7 @@ impl Translator for ControlChangeBoolTranslator {
     fn midi_to_osc(&self, midi: &MidiMessage) -> Option<OscPacket> {
         use MidiMessage::*;
         if let ControlChange(ch, ControlEvent { control, value }) = midi {
-            if (self.channel == Channel::from(*ch)) && (self.control == *control) {
+            if (&self.channel == ch) && (self.control == *control) {
                 return Some(OscPacket::Message(OscMessage {
                     addr: self.address.clone(),
                     args: vec![OscType::Float(self.cv_to_float(*value))],
@@ -128,7 +128,7 @@ impl Translator for ControlChangeBoolTranslator {
         None
     }
 
-    fn osc_to_midi(&self, addr_matcher: Matcher, args: &[OscType]) -> Option<MidiMessage> {
+    fn osc_to_midi(&self, addr_matcher: &Matcher, args: &[OscType]) -> Option<MidiMessage> {
         // TODO: Performance nightmare here:
         if addr_matcher.match_address(&OscAddress::new(self.address.clone()).unwrap()) {
             return Some(MidiMessage::ControlChange(
