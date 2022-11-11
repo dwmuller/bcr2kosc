@@ -21,6 +21,8 @@ use rosc::encoder::encode;
 use tokio::net::UdpSocket;
 use tokio::sync::Notify;
 
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
 /// Data type used to distribute stop notifications to the various tasks started
 /// by this module. Since there are a variety of ways to do this, it was
 /// convenient to abstract this while experimenting.
@@ -63,10 +65,10 @@ impl BCtlOscSvc {
     }
 
     /// Run the service.
-    pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn run(&mut self) -> Result<()> {
         // We use a single UDP socket for sending and receiving.
         let udp_socket = Arc::new(UdpSocket::bind(self.osc_in_addr).await?);
-        let xset = Arc::new(ServerTranslationSet::get_test_set());
+        let xset = Arc::new(ServerTranslationSet::get_test_set()?);
 
         // MIDI -> OSC
         let midi_rx = MidiStream::bind(&self.midi_in_port_name)?;

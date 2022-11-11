@@ -5,6 +5,7 @@
 //! * Reaper expects Float(1.0) for Boolean true, Float(0.0) for false.
 //!
 
+use std::error::Error;
 use std::iter;
 
 use log::error;
@@ -14,6 +15,9 @@ use rosc::{OscBundle, OscMessage, OscPacket, OscTime, OscType};
 
 mod ccx;
 pub use crate::translator::ccx::*;
+
+
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Specifies a set of translations between OSC and MIDI messages.
 pub struct ServerTranslationSet(Vec<Box<dyn Translator>>);
@@ -26,11 +30,11 @@ impl ServerTranslationSet {
         ServerTranslationSet(set)
     }
 
-    pub fn get_test_set() -> ServerTranslationSet {
-        Self::new(vec![
-            ControlChangeRangeTranslator::new(Channel::Ch1, 1, 0, 127, "/encoder/1"),
-            ControlChangeBoolTranslator::new(Channel::Ch1, 65, 0, 127, "/key/1"),
-        ])
+    pub fn get_test_set() -> Result<ServerTranslationSet> {
+        Ok(Self::new(vec![
+            ControlChangeRangeTranslator::new(Channel::Ch1, 1, 0, 127, "/encoder/1")?,
+            ControlChangeBoolTranslator::new(Channel::Ch1, 65, 0, 127, "/key/1")?,
+        ]))
     }
 
     /// Translates a MIDI msg to an OSC packet, if there is at least one valid

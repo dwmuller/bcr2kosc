@@ -7,7 +7,7 @@ pub struct ControlChangeRangeTranslator {
     control: u8,
     low: u8,
     high: u8,
-    address: String,
+    address: OscAddress,
 }
 
 impl ControlChangeRangeTranslator {
@@ -17,14 +17,15 @@ impl ControlChangeRangeTranslator {
         low: u8,
         high: u8,
         address: &str,
-    ) -> Box<dyn Translator> {
-        Box::new(Self {
+    ) -> Result<Box<dyn Translator>> {
+        let address = OscAddress::new(address.to_string())?;
+        Ok(Box::new(Self {
             channel,
             control,
             low,
             high,
-            address: address.to_string(),
-        })
+            address,
+        }))
     }
 }
 
@@ -34,7 +35,7 @@ impl Translator for ControlChangeRangeTranslator {
         if let ControlChange(ch, ControlEvent { control, value }) = midi {
             if (&self.channel == ch) && (self.control == *control) {
                 return Some(OscPacket::Message(OscMessage {
-                    addr: self.address.clone(),
+                    addr: self.address.to_string(),
                     args: vec![OscType::Float(cv_to_normalized_float(
                         *value, self.low, self.high,
                     ))],
@@ -45,8 +46,7 @@ impl Translator for ControlChangeRangeTranslator {
     }
 
     fn osc_to_midi(&self, addr_matcher: &Matcher, args: &[OscType]) -> Option<MidiMessage> {
-        // TODO: Performance nightmare here:
-        if addr_matcher.match_address(&OscAddress::new(self.address.clone()).unwrap()) {
+        if addr_matcher.match_address(&self.address) {
             return Some(MidiMessage::ControlChange(
                 self.channel,
                 ControlEvent {
@@ -68,7 +68,7 @@ pub struct ControlChangeBoolTranslator {
     control: u8,
     off: u8,
     on: u8,
-    address: String,
+    address: OscAddress,
 }
 
 impl ControlChangeBoolTranslator {
@@ -78,14 +78,15 @@ impl ControlChangeBoolTranslator {
         off: u8,
         on: u8,
         address: &str,
-    ) -> Box<dyn Translator> {
-        Box::new(Self {
+    ) -> Result<Box<dyn Translator>> {
+        let address = OscAddress::new(address.to_string())?;
+        Ok(Box::new(Self {
             channel,
             control,
             off,
             on,
-            address: address.to_string(),
-        })
+            address,
+        }))
     }
 
     fn cv_to_float(&self, cv: u8) -> f32 {
@@ -120,7 +121,7 @@ impl Translator for ControlChangeBoolTranslator {
         if let ControlChange(ch, ControlEvent { control, value }) = midi {
             if (&self.channel == ch) && (self.control == *control) {
                 return Some(OscPacket::Message(OscMessage {
-                    addr: self.address.clone(),
+                    addr: self.address.to_string(),
                     args: vec![OscType::Float(self.cv_to_float(*value))],
                 }));
             }
@@ -129,8 +130,7 @@ impl Translator for ControlChangeBoolTranslator {
     }
 
     fn osc_to_midi(&self, addr_matcher: &Matcher, args: &[OscType]) -> Option<MidiMessage> {
-        // TODO: Performance nightmare here:
-        if addr_matcher.match_address(&OscAddress::new(self.address.clone()).unwrap()) {
+        if addr_matcher.match_address(&self.address) {
             return Some(MidiMessage::ControlChange(
                 self.channel,
                 ControlEvent {
