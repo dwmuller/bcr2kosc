@@ -4,7 +4,7 @@ use std::error::Error;
 use std::fmt::Display;
 
 use futures::channel::mpsc;
-use midi_control::MidiMessage;
+use midi_msg::MidiMsg;
 use midir::MidiInput;
 
 
@@ -12,7 +12,7 @@ use midir::MidiInput;
 #[derive(Debug)]
 pub enum MidiIoError {
     ChannelSender(mpsc::SendError),
-    StdChannelSender(std::sync::mpsc::SendError<MidiMessage>),
+    StdChannelSender(std::sync::mpsc::SendError<MidiMsg>),
     MidiInit(midir::InitError),
     MidiSend(midir::SendError),
     MidiInputConnect(midir::ConnectError<MidiInput>),
@@ -68,8 +68,8 @@ impl From<mpsc::SendError> for MidiIoError {
         MidiIoError::ChannelSender(e)
     }
 }
-impl From<std::sync::mpsc::SendError<MidiMessage>> for MidiIoError {
-    fn from(e: std::sync::mpsc::SendError<MidiMessage>) -> Self {
+impl From<std::sync::mpsc::SendError<MidiMsg>> for MidiIoError {
+    fn from(e: std::sync::mpsc::SendError<MidiMsg>) -> Self {
         MidiIoError::StdChannelSender(e)
     }
 }

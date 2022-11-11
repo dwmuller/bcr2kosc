@@ -10,7 +10,7 @@ use std::{error::Error, net::SocketAddr};
 use clap::{Parser, Subcommand};
 use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
-use midi_control::MidiMessage;
+use midi_msg::MidiMsg;
 use tokio::signal;
 
 mod b_control;
@@ -170,7 +170,7 @@ fn list_ports() {
 }
 
 async fn listen(port_name: &str) -> Result<()> {
-    async fn print_midi_input(midi_in: impl Stream<Item = MidiMessage>) {
+    async fn print_midi_input(midi_in: impl Stream<Item = MidiMsg>) {
         pin_mut!(midi_in);
         while let Some(msg) = midi_in.next().await {
             println!("{msg:?}");
@@ -230,7 +230,7 @@ async fn list_bcontrols(in_port_name: &str, out_port_name: &str, delay: u64) -> 
         }
     };
     MidiSink::bind(out_port_name)?
-        .send(MidiMessage::from(&bdata))
+        .send(MidiMsg::from(&bdata))
         .await?;
     midi_in.for_each(action).await;
     Ok(())

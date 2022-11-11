@@ -57,7 +57,7 @@ dependencies = [
  "clap",
  "futures",
  "log",
- "midi-control",
+ "midi-msg",
  "midir",
  "pin-project",
  "rosc",
@@ -70,6 +70,16 @@ name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+
+[[package]]
+name = "bstr"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fca0852af221f458706eb0725c03e4ed6c46af9ac98e6a689d5e634215d594dd"
+dependencies = [
+ "memchr",
+ "serde",
+]
 
 [[package]]
 name = "bumpalo"
@@ -436,12 +446,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "midi-control"
-version = "0.2.1"
+name = "micromath"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1214dcdc0cbf342254de739822da2cffd3c1c2c2b45685d98b80009758920fdf"
+checksum = "bc4010833aea396656c2f91ee704d51a6f1329ec2ab56ffd00bfd56f7481ea94"
+
+[[package]]
+name = "midi-msg"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc0f9daef29375daef410986c9a81f425b756f6e4ef29af90c25393936037ac6"
 dependencies = [
- "midir",
+ "bstr",
+ "micromath",
 ]
 
 [[package]]
@@ -676,6 +693,12 @@ name = "scratch"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8132065adcfd6e02db789d9285a0deb2f3fcb04002865ab67d5fb103533898"
+
+[[package]]
+name = "serde"
+version = "1.0.147"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d193d69bae983fc11a79df82342761dfbf28a99fc8d203dca4c3c1b590948965"
 
 [[package]]
 name = "signal-hook-registry"

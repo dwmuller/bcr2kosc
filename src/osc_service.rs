@@ -16,10 +16,12 @@ use crate::PGM;
 use futures::future::join;
 use futures::{pin_mut, select, Future, FutureExt, Sink, SinkExt, Stream, StreamExt};
 use log::{debug, error, info};
-use midi_control::MidiMessage;
+use midi_msg::MidiMsg;
 use rosc::encoder::encode;
 use tokio::net::UdpSocket;
 use tokio::sync::Notify;
+
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Data type used to distribute stop notifications to the various tasks started
 /// by this module. Since there are a variety of ways to do this, it was
@@ -63,10 +65,10 @@ impl BCtlOscSvc {
     }
 
     /// Run the service.
-    pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn run(&mut self) -> Result<()> {
         // We use a single UDP socket for sending and receiving.
         let udp_socket = Arc::new(UdpSocket::bind(self.osc_in_addr).await?);
-        let xset = Arc::new(ServerTranslationSet::get_test_set());
+        let xset = Arc::new(ServerTranslationSet::get_test_set()?);
 
         // MIDI -> OSC
         let midi_rx = MidiStream::bind(&self.midi_in_port_name)?;
@@ -93,7 +95,7 @@ impl BCtlOscSvc {
 
     fn start_midi_to_osc(
         &self,
-        receiver: impl Stream<Item = MidiMessage> + Send + 'static,
+        receiver: impl Stream<Item = MidiMsg> + Send + 'static,
         udp_socket: &Arc<UdpSocket>,
         xset: &Arc<ServerTranslationSet>,
     ) -> impl Future<Output = ()> {
@@ -110,7 +112,7 @@ impl BCtlOscSvc {
     fn start_osc_to_midi(
         &self,
         udp_socket: &Arc<UdpSocket>,
-        dest: impl Sink<MidiMessage> + Send + 'static,
+        dest: impl Sink<MidiMsg> + Send + 'static,
         xset: &Arc<ServerTranslationSet>,
     ) -> impl Future<Output = ()> {
         run_osc_to_midi(self.stopper.clone(), udp_socket.clone(), dest, xset.clone())
@@ -128,7 +130,7 @@ async fn run_midi_to_osc<SRC>(
     dest: Arc<UdpSocket>,
     xset: Arc<ServerTranslationSet>,
 ) where
-    SRC: Stream<Item = MidiMessage> + Send,
+    SRC: Stream<Item = MidiMsg> + Send,
 {
     let stopper = stopper.clone();
     select! {
@@ -144,7 +146,7 @@ async fn run_midi_to_osc_loop<SRC>(
     dest: Arc<UdpSocket>,
     xset: Arc<ServerTranslationSet>,
 ) where
-    SRC: Stream<Item = MidiMessage> + Send,
+    SRC: Stream<Item = MidiMsg> + Send,
 {
     pin_mut!(src);
     info!("{PGM} will send OSC from UDP port {:?}.", dest.local_addr());
@@ -173,7 +175,7 @@ async fn run_osc_to_midi<D>(
     dest: D,
     xset: Arc<ServerTranslationSet>,
 ) where
-    D: Sink<MidiMessage>,
+    D: Sink<MidiMsg>,
 {
     let stopper = stopper.clone();
     select! {
@@ -185,7 +187,7 @@ async fn run_osc_to_midi<D>(
 
 async fn run_osc_to_midi_loop<D>(src: Arc<UdpSocket>, dest: D, xset: Arc<ServerTranslationSet>)
 where
-    D: Sink<MidiMessage>,
+    D: Sink<MidiMsg>,
 {
     info!(
         "{PGM} listening for OSC on UDP port {:?}.",

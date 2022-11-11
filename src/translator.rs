@@ -7,18 +7,20 @@
 
 use std::iter;
 
-use log::error;
-use midi_control::*;
+use log::{error, debug};
+use midi_msg::*;
 use rosc::address::{Matcher, OscAddress};
 use rosc::{OscBundle, OscMessage, OscPacket, OscTime, OscType};
 
 mod ccx;
 pub use crate::translator::ccx::*;
 
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 /// Specifies a set of translations between OSC and MIDI messages.
 pub struct ServerTranslationSet(Vec<Box<dyn Translator>>);
 
-pub type MMIterator = Box<dyn Iterator<Item = MidiMessage>>;
+pub type MMIterator = Box<dyn Iterator<Item = MidiMsg>>;
 
 impl ServerTranslationSet {
     /// Create a new ServerTranslationSet from a vector of translators.
@@ -26,16 +28,30 @@ impl ServerTranslationSet {
         ServerTranslationSet(set)
     }
 
-    pub fn get_test_set() -> ServerTranslationSet {
-        Self::new(vec![
-            ControlChangeRangeTranslator::new(Channel::Ch1, 1, 0, 127, "/encoder/1"),
-            ControlChangeBoolTranslator::new(Channel::Ch1, 65, 0, 127, "/key/1"),
-        ])
+    pub fn get_test_set() -> Result<ServerTranslationSet> {
+        let a = [
+            ControlChangeHighResRangeTranslator::new(
+                Channel::Ch1,
+                Box::new(|cc| matches!(cc, ControlChange::ModWheel(_))),
+                Box::new(|val| ControlChange::ModWheel(val)),
+                0..=127,
+                "/encoder/1",
+            )?,
+            ControlChangeBoolTranslator::new(
+                Channel::Ch1,
+                Box::new(|cc| matches!(cc, ControlChange::TogglePortamento(_))),
+                Box::new(|val| ControlChange::TogglePortamento(val > 63)),
+                0..=127,
+                "/key/1",
+            )?,
+        ];
+        Ok(Self::new(a.into_iter().collect()))
     }
 
     /// Translates a MIDI msg to an OSC packet, if there is at least one valid
     /// mapping to an OSC message. The packet may contain multiple messages.
-    pub fn midi_msg_to_osc(&self, midi_msg: MidiMessage) -> Option<OscPacket> {
+    pub fn midi_msg_to_osc(&self, midi_msg: MidiMsg) -> Option<OscPacket> {
+        debug!("Translating MIDI: {midi_msg:?}");
         let msgs: Vec<OscPacket> = self
             .0
             .iter()
@@ -69,7 +85,7 @@ impl ServerTranslationSet {
                     return Box::new(iter::empty());
                 }
                 let matcher = matcher.unwrap();
-                let v: Vec<MidiMessage> = self
+                let v: Vec<MidiMsg> = self
                     .0
                     .iter()
                     .filter_map(|x| x.osc_to_midi(&matcher, &om.args))
@@ -89,19 +105,18 @@ impl ServerTranslationSet {
 }
 
 pub trait Translator {
-    fn midi_to_osc(&self, midi: &MidiMessage) -> Option<OscPacket>;
-    fn osc_to_midi(&self, addr_matcher: &Matcher, args: &[OscType]) -> Option<MidiMessage>;
+    fn midi_to_osc(&self, midi: &MidiMsg) -> Option<OscPacket>;
+    fn osc_to_midi(&self, addr_matcher: &Matcher, args: &[OscType]) -> Option<MidiMsg>;
 }
 
 //struct NoteOnTranslator(Channel, MidiNote, String);
 
 /// Translate a MIDI control value to a normalized float (0.0 thru 1.0).
-fn cv_to_normalized_float(v: u8, low: u8, high: u8) -> f32 {
+fn cv_to_normalized_float(v: u16, low: u16, high: u16) -> f32 {
     (v - low) as f32 / (high - low) as f32
 }
 
 /// Translate a normalized float (0.0 thru 1.0) to a MIDI control value.
-fn normalized_float_to_cv(v: f32, low: u8, high: u8) -> u8 {
-    (v * (high - low) as f32).round() as u8 + low
+fn normalized_float_to_cv(v: f32, low: u16, high: u16) -> u16 {
+    (v * (high - low) as f32).round() as u16 + low
 }
-

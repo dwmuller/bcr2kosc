@@ -1,10 +1,10 @@
 #![deny(missing_docs)]
 //! Asynchronous MIDI I/O via `Stream` and `Sink`.
-//! 
+//!
 //! A module that wraps MIDI port I/O mechanisms with MIDI `Stream` and `Sink`
 //! structs that work with types from the `midi-control` crate. For internal
 //! implementation, it relies on the platform-agnostic `midir` crate.
-//! 
+//!
 //! This module is runtime-agnostic, and is a good candidate for a distinct crate.
 
 use std::pin::Pin;
@@ -14,7 +14,7 @@ use futures::channel::mpsc::UnboundedReceiver;
 use futures::channel::mpsc::{self, UnboundedSender};
 use futures::{Sink, Stream};
 use log::{debug, error, info};
-use midi_control::MidiMessage;
+use midi_msg::{MidiMsg, ReceiverContext};
 use midir::{MidiIO, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
 use pin_project::pin_project;
 
@@ -54,11 +54,11 @@ pub struct MidiStream {
     /// so we need this buffered storage for it. The callback is also
     /// synchronous,so we need the unbounded channel's ability to receive data
     /// synchronously.
-    rx: UnboundedReceiver<MidiMessage>,
+    rx: UnboundedReceiver<MidiMsg>,
 }
 
 impl Stream for MidiStream {
-    type Item = MidiMessage;
+    type Item = MidiMsg;
 
     fn poll_next(
         self: std::pin::Pin<&mut Self>,
@@ -76,14 +76,26 @@ impl MidiStream {
         let midi_input_port = find_port(&midi_input, port_name)?;
         let (tx, rx) = mpsc::unbounded();
 
+        // The MIDI input context. midi-msg uses this to track some state in order
+        // to, for example, coalesce MSB/LSB values, and interpret running MIDI
+        // commands. (Although MIDI drivers are actually required to expand running
+        // MIDI, so we may never see any at this level.)
+        //
+        // We capture this in the closure rather than passing it to the
+        // connection creator, because we have no need to refer to it anywhere else.
+        let mut rx_ctx = ReceiverContext::new();
         let cb = move |_time: u64, buf: &[u8], _context: &mut ()| {
-            let midi = MidiMessage::from(buf);
-            tx.unbounded_send(midi)
-                .or_else(|e| {
-                    error!("midi-io listener error on send: {e}");
-                    Err(e)
-                })
-                .ok();
+            match MidiMsg::from_midi_with_context(buf, &mut rx_ctx) {
+                Err(e) => error!("midi-msg receive error: {e}"),
+                Ok((midi, _len)) => {
+                    tx.unbounded_send(midi)
+                        .or_else(|e| {
+                            error!("midi-io listener error on send: {e}");
+                            Err(e)
+                        })
+                        .ok();
+                }
+            };
         };
         let midi_cxn = midi_input.connect(&midi_input_port, "midi-io listener", cb, ())?;
         info!("midi-io listener started on \"{port_name}\"");
@@ -96,11 +108,11 @@ impl MidiStream {
 }
 
 /// A Sink which transmits MIDI messages in the form of
-/// `midi_connect::MidiMessage` structs to a single MIDI port.
+/// `midi_connect::MidiMsg` structs to a single MIDI port.
 #[pin_project]
 pub struct MidiSink {
     #[pin]
-    data_q: Option<std::sync::mpsc::Sender<MidiMessage>>,
+    data_q: Option<std::sync::mpsc::Sender<MidiMsg>>,
     #[pin]
     response_q: mpsc::UnboundedReceiver<bool>,
     pending_count: usize,
@@ -113,7 +125,7 @@ pub struct MidiSink {
 
 impl MidiSink {
     /// Returns a new `MidiSink` bound to the named MIDI port.
-    /// 
+    ///
     /// This starts an OS thread to handle writes, which may be synchronous,
     /// depending on operating system and MIDI port driver.
     pub fn bind(port_name: &str) -> Result<Self> {
@@ -122,7 +134,7 @@ impl MidiSink {
         let midi_cxn = midi_output
             .connect(&midi_output_port, &format!("midi-io sender"))
             .expect("Failed to open MIDI output connection.");
-        let (data_tx, data_rx) = std::sync::mpsc::channel::<MidiMessage>();
+        let (data_tx, data_rx) = std::sync::mpsc::channel::<MidiMsg>();
         let (response_tx, response_rx) = mpsc::unbounded::<bool>();
         let port_name = port_name.to_string();
         info!("midi-io writer started on \"{port_name:}\"");
@@ -138,14 +150,14 @@ impl MidiSink {
 }
 
 fn run_midi_writer(
-    data_rx: std::sync::mpsc::Receiver<MidiMessage>,
+    data_rx: std::sync::mpsc::Receiver<MidiMsg>,
     mut midi_cxn: MidiOutputConnection,
     response_tx: UnboundedSender<bool>,
 ) {
     // The only significant recv error is due to channel closure.
     while let Ok(item) = data_rx.recv() {
         debug!("midi-io sending MIDI msg: {item:?}");
-        let bytes: Vec<u8> = item.into();
+        let bytes: Vec<u8> = item.to_midi();
         let result = midi_cxn.send(&bytes).map_err(MidiIoError::from);
         if let Err(e) = result {
             error!("midi-io send error: {e:?}");
@@ -159,14 +171,14 @@ fn run_midi_writer(
     info!("midi-io listener thread exiting")
 }
 
-impl Sink<MidiMessage> for MidiSink {
+impl Sink<MidiMsg> for MidiSink {
     type Error = MidiIoError;
 
     fn poll_ready(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Result<()>> {
         self.poll_flush(cx)
     }
 
-    fn start_send(self: Pin<&mut Self>, item: MidiMessage) -> Result<()> {
+    fn start_send(self: Pin<&mut Self>, item: MidiMsg) -> Result<()> {
         match self.data_q {
             Some(ref data_q) => data_q.send(item).map_err(MidiIoError::from).and_then(|v| {
                 *self.project().pending_count += 1;
@@ -198,7 +210,6 @@ impl Sink<MidiMessage> for MidiSink {
     }
 }
 
-
 fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port> {
     let ports = midi_io.ports();
     let wanted = Ok(port_name.to_string());
@@ -208,4 +219,3 @@ fn find_port<T: MidiIO>(midi_io: &T, port_name: &str) -> Result<T::Port> {
         None => Err(MidiIoError::Regular(ErrorKind::MidiPortNameNotFound)),
     }
 }
-

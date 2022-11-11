@@ -2,28 +2,28 @@
 //!
 //! Types to represent system exclusive messages for Behringer's
 //! BCR2000 and BCF2000 MIDI controllers, and methods to translate them to and
-//! from `midi_control::MidiMessage::SysEx` enum variants.
-//! 
+//! from `midi_msg::MidiMsg::SystemExclusive` enum variants.
+//!
 //! The `io` sub-module, which is re-exported here, contains functions for
 //! requesting and receiving specific types of data from a B-Control when given
-//! a `Stream` and `Sink` of `MidiMessage` objects. See `midi-io`.
+//! a `Stream` and `Sink` of `MidiMsg` objects. See `midi-io`.
 //!
 //! This is based on the amazing reverse engineering work by Mark van den
 //! Berg, published on https://mountainutilities.eu/. It follows patterns
 //! used in the midi_msg library crate and uses some types from it.
 //!
 
-// TODO: Review overhead introduced by using MidiMessage. Consider bypassing.
+// TODO: Review overhead introduced by using MidiMsg. Consider bypassing.
 
 use std::{error::Error, fmt::Display};
 
-use midi_control::{message::SysExType, sysex::ManufacturerId, MidiMessage, SysExEvent};
+use midi_msg::{ManufacturerID, MidiMsg, SystemExclusiveMsg};
 
 mod io;
 pub use io::*;
 
 /// Behringer's MIDI manufacturer ID.
-pub const BEHRINGER: ManufacturerId = ManufacturerId::ExtId(0x20u8, 0x32u8);
+pub const BEHRINGER: ManufacturerID = ManufacturerID(0x20u8, Some(0x32u8));
 
 /// B-Control mode system exclusive data. All system exclusive message data
 /// to or from the BC devices have this structure.
@@ -75,18 +75,12 @@ impl BControlSysEx {
             BControlModel::Any => 0x7f,
         });
         self.command.extend_midi(v);
-        v.push(midi_control::consts::EOX);
+        //v.push(midi_control::consts::EOX);
     }
     pub fn from_midi(m: &[u8]) -> Result<(Self, usize), ParseError> {
         if m.len() == 0 {
             return error("no sysex data");
         }
-        // Elide EOX byte if present. Some MIDI parser packages do this already,
-        // some do not.
-        let mut m = m;
-        if m[m.len() - 1] == midi_control::consts::EOX {
-            m = &m[..m.len() - 1];
-        };
         if m.len() >= 3 {
             let device = match m[0] {
                 0..=15 => DeviceID::Device(m[0]),
@@ -180,25 +174,30 @@ impl From<&BControlSysEx> for Vec<u8> {
         b.to_midi()
     }
 }
-impl From<&BControlSysEx> for MidiMessage {
+impl From<&BControlSysEx> for MidiMsg {
     fn from(bc: &BControlSysEx) -> Self {
         let bdata = bc.to_midi();
-        let req = MidiMessage::SysEx(SysExEvent {
-            r#type: SysExType::Manufacturer(BEHRINGER),
-            data: bdata,
-        });
+        let req = MidiMsg::SystemExclusive {
+            msg: SystemExclusiveMsg::Commercial {
+                id: BEHRINGER,
+                data: bdata,
+            },
+        };
         req
     }
 }
 
-impl TryFrom<&MidiMessage> for BControlSysEx {
+impl TryFrom<&MidiMsg> for BControlSysEx {
     type Error = ParseError;
 
-    fn try_from<'a>(value: &MidiMessage) -> Result<Self, Self::Error> {
-        if let MidiMessage::SysEx(SysExEvent {
-            r#type: SysExType::Manufacturer(BEHRINGER),
-            data,
-        }) = value
+    fn try_from<'a>(value: &MidiMsg) -> Result<Self, Self::Error> {
+        if let MidiMsg::SystemExclusive {
+            msg:
+                SystemExclusiveMsg::Commercial {
+                    id: BEHRINGER,
+                    data,
+                },
+        } = value
         {
             // Recognized as a Behringer sysex. Parse the sysex payload.
             match BControlSysEx::from_midi(&data) {
