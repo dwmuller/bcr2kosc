@@ -226,6 +226,7 @@ async fn list_bcontrols(in_port_name: &str, out_port_name: &str, delay: u64) -> 
             command: BControlCommand::SendIdentity { id_string },
         } = sysex
         {
+            let dev = dev + 1;
             println!("{dev}, {model:}, {id_string}");
         }
     };

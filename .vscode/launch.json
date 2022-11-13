@@ -5,16 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug info",
-            "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
-            "args": ["-vvv", "info", "Focusrite USB MIDI", "Focusrite USB MIDI", "1"],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "rust: cargo build",
-        },
-        {
-            "type": "lldb",
+            "type": "cppvsdbg",
             "request": "launch",
             "name": "Debug find",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
@@ -23,7 +14,7 @@
             "preLaunchTask": "rust: cargo build",
         },
         {
-            "type": "lldb",
+            "type": "cppvsdbg",
             "request": "launch",
             "name": "Debug serve",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
@@ -32,7 +23,7 @@
             "preLaunchTask": "rust: cargo build",
         },
         {
-            "type": "lldb",
+            "type": "cppvsdbg",
             "request": "launch",
             "name": "Debug listen",
             "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
