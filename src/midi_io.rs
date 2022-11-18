@@ -77,6 +77,7 @@ impl MidiStream {
         let (tx, rx) = mpsc::unbounded();
 
         let cb = move |_time: u64, buf: &[u8], _context: &mut ()| {
+            debug!("midi-io received {} bytes.", buf.len());
             let midi = MidiMessage::from(buf);
             tx.unbounded_send(midi)
                 .or_else(|e| {
@@ -150,7 +151,7 @@ fn run_midi_writer(
         if let Err(e) = result {
             error!("midi-io send error: {e:?}");
         } else {
-            debug!("midi-io sent MIDI msg");
+            debug!("midi-io sent {} bytes.", bytes.len());
         }
         if let Err(e) = response_tx.unbounded_send(true) {
             error!("midi-io response send error: {e}");

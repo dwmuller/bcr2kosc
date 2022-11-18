@@ -1,4 +1,12 @@
 $rev R1
+$global
+  .midimode S-4
+  .startup last
+  .footsw auto
+  .rxch 3
+  .deviceid 1
+  .txinterval 2
+  .deadtime 0
 $preset
   .name 'all controls            '
   .snapshot off
@@ -559,4 +567,4424 @@ $button 62
   .easypar CC 1 110 127 0 toggleon
   .showvalue on
   .default 0
+$store 1
+$preset
+  .name 'multi synth             '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 2
+  .easypar CC 2 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 3
+  .easypar CC 3 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 4
+  .easypar CC 4 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 5
+  .easypar CC 5 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 6
+  .easypar CC 6 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 7
+  .easypar CC 7 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 8
+  .easypar CC 8 10 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 9
+  .easypar CC 1 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 10
+  .easypar CC 2 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 11
+  .easypar CC 3 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 12
+  .easypar CC 4 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 13
+  .easypar CC 5 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 14
+  .easypar CC 6 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 15
+  .easypar CC 7 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 16
+  .easypar CC 8 8 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 17
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 2 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 19
+  .easypar CC 3 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20
+  .easypar CC 4 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21
+  .easypar CC 5 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22
+  .easypar CC 6 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23
+  .easypar CC 7 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24
+  .easypar CC 8 12 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 26
+  .easypar CC 2 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 27
+  .easypar CC 3 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 28
+  .easypar CC 4 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 29
+  .easypar CC 5 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 30
+  .easypar CC 6 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 31
+  .easypar CC 7 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 32
+  .easypar CC 8 13 0 127 absolute
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 2 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 3 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 4 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 5 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 6 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 7 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 8 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 2 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 3 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 4 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 5 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 6 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 7 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 8 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 2 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 3 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 4 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 5 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 6 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 7 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 8 7 0 127 absolute
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar PC 11 off off 17
+  .showvalue off
+  .default 0
+$button 2
+  .easypar PC 11 off off 18
+  .showvalue off
+  .default 0
+$button 3
+  .easypar PC 11 off off 19
+  .showvalue off
+  .default 0
+$button 4
+  .easypar PC 11 off off 20
+  .showvalue off
+  .default 0
+$button 5
+  .easypar PC 11 off off 21
+  .showvalue off
+  .default 0
+$button 6
+  .easypar PC 11 off off 22
+  .showvalue off
+  .default 0
+$button 7
+  .easypar PC 11 off off 23
+  .showvalue off
+  .default 0
+$button 8
+  .easypar PC 11 off off 24
+  .showvalue off
+  .default 0
+$button 9
+  .easypar PC 11 off off 25
+  .showvalue off
+  .default 0
+$button 10
+  .easypar PC 11 off off 26
+  .showvalue off
+  .default 0
+$button 11
+  .easypar PC 11 off off 27
+  .showvalue off
+  .default 0
+$button 12
+  .easypar PC 11 off off 28
+  .showvalue off
+  .default 0
+$button 13
+  .easypar PC 11 off off 29
+  .showvalue off
+  .default 0
+$button 14
+  .easypar PC 11 off off 30
+  .showvalue off
+  .default 0
+$button 15
+  .easypar PC 11 off off 31
+  .showvalue off
+  .default 0
+$button 16
+  .easypar PC 11 off off 32
+  .showvalue off
+  .default 0
+$button 17
+  .easypar PC 11 off off 33
+  .showvalue off
+  .default 0
+$button 18
+  .easypar PC 11 off off 34
+  .showvalue off
+  .default 0
+$button 19
+  .easypar PC 11 off off 35
+  .showvalue off
+  .default 0
+$button 20
+  .easypar PC 11 off off 36
+  .showvalue off
+  .default 0
+$button 21
+  .easypar PC 11 off off 37
+  .showvalue off
+  .default 0
+$button 22
+  .easypar PC 11 off off 38
+  .showvalue off
+  .default 0
+$button 23
+  .easypar PC 11 off off 39
+  .showvalue off
+  .default 0
+$button 24
+  .easypar PC 11 off off 40
+  .showvalue off
+  .default 0
+$button 25
+  .easypar PC 11 off off 41
+  .showvalue off
+  .default 0
+$button 26
+  .easypar PC 11 off off 42
+  .showvalue off
+  .default 0
+$button 27
+  .easypar PC 11 off off 43
+  .showvalue off
+  .default 0
+$button 28
+  .easypar PC 11 off off 44
+  .showvalue off
+  .default 0
+$button 29
+  .easypar PC 11 off off 45
+  .showvalue off
+  .default 0
+$button 30
+  .easypar PC 11 off off 46
+  .showvalue off
+  .default 0
+$button 31
+  .easypar PC 11 off off 47
+  .showvalue off
+  .default 0
+$button 32
+  .easypar PC 11 off off 48
+  .showvalue off
+  .default 0
+$button 33
+  .easypar PC 11 off off 9
+  .showvalue off
+  .default 0
+$button 34
+  .easypar PC 11 off off 10
+  .showvalue off
+  .default 0
+$button 35
+  .easypar PC 11 off off 11
+  .showvalue off
+  .default 0
+$button 36
+  .easypar PC 11 off off 12
+  .showvalue off
+  .default 0
+$button 37
+  .easypar PC 11 off off 13
+  .showvalue off
+  .default 0
+$button 38
+  .easypar PC 11 off off 14
+  .showvalue off
+  .default 0
+$button 39
+  .easypar PC 11 off off 15
+  .showvalue off
+  .default 0
+$button 40
+  .easypar PC 11 off off 16
+  .showvalue off
+  .default 0
+$button 41
+  .easypar PC 11 off off 1
+  .showvalue off
+  .default 0
+$button 42
+  .easypar PC 11 off off 2
+  .showvalue off
+  .default 0
+$button 43
+  .easypar PC 11 off off 3
+  .showvalue off
+  .default 0
+$button 44
+  .easypar PC 11 off off 4
+  .showvalue off
+  .default 0
+$button 45
+  .easypar PC 11 off off 5
+  .showvalue off
+  .default 0
+$button 46
+  .easypar PC 11 off off 6
+  .showvalue off
+  .default 0
+$button 47
+  .easypar PC 11 off off 7
+  .showvalue off
+  .default 0
+$button 48
+  .easypar PC 11 off off 8
+  .showvalue off
+  .default 0
+$button 49
+  .easypar MMC all locate 00:00:00.00 25f
+  .showvalue off
+  .default 0
+$button 50
+  .easypar MMC all fwd 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$button 51
+  .easypar MMC all stop 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$button 52
+  .easypar MMC all play 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$button 61
+  .easypar MMC all punch-in 00:00:00.00 noloc
+  .showvalue on
+  .default 0
+$button 62
+  .easypar MMC all punch-out 00:00:00.00 noloc
+  .showvalue on
+  .default 0
+$store 2
+$preset
+  .name 'gm/gs/xg synth          '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar GS/XG 1 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 2
+  .easypar GS/XG 1 rev-send 0 127
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar GS/XG 1 crs-send 0 127
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar GS/XG 1 dly-send 0 127
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar GS/XG 1 p-time 0 127
+  .showvalue on
+  .mode 12dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 6
+  .easypar GS/XG 1 modulation 0 127
+  .showvalue on
+  .mode bar/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 7
+  .easypar PB 1 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 8
+  .easypar CC 1 121 0 127 absolute
+  .showvalue on
+  .mode 12dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar GS/XG 1 cutoff 0 127
+  .showvalue on
+  .mode cut
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar GS/XG 1 resonance 0 127
+  .showvalue on
+  .mode spread
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar GS/XG 1 v-rate 0 127
+  .showvalue on
+  .mode 12dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar GS/XG 1 v-depth 0 127
+  .showvalue on
+  .mode 12dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar GS/XG 1 v-delay 0 127
+  .showvalue on
+  .mode 12dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar GS/XG 1 eg-attack 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15
+  .easypar GS/XG 1 eg-decay 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar GS/XG 1 eg-release 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar GS/XG 1 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 18
+  .easypar GS/XG 2 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 19
+  .easypar GS/XG 3 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 20
+  .easypar GS/XG 4 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 21
+  .easypar GS/XG 5 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 22
+  .easypar GS/XG 6 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 23
+  .easypar GS/XG 7 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 24
+  .easypar GS/XG 8 panorama 0 127
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 64
+$encoder 25
+  .easypar PC 1 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 26
+  .easypar PC 2 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 27
+  .easypar PC 3 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 28
+  .easypar PC 4 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 29
+  .easypar PC 5 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 30
+  .easypar PC 6 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 31
+  .easypar PC 7 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 32
+  .easypar PC 8 off off
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 33
+  .easypar GS/XG 10 panorama 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar GS/XG 10 rev-send 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar GS/XG 10 crs-send 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar GS/XG 10 eg-attack 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar GS/XG 10 eg-decay 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar GS/XG 10 cutoff 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar GS/XG 10 resonance 0 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar PB 10 127
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 64
+$encoder 41
+  .easypar GS/XG 9 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar GS/XG 10 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar GS/XG 11 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar GS/XG 12 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar GS/XG 13 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar GS/XG 14 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar GS/XG 15 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar GS/XG 16 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar GS/XG 1 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar GS/XG 2 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar GS/XG 3 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar GS/XG 4 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar GS/XG 5 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar GS/XG 6 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar GS/XG 7 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar GS/XG 8 volume 0 127
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar NOTE 1 52 100 toggleoff
+  .showvalue off
+  .default 0
+$button 2
+  .easypar NOTE 1 53 100 toggleoff
+  .showvalue off
+  .default 0
+$button 3
+  .easypar NOTE 1 54 100 toggleoff
+  .showvalue off
+  .default 0
+$button 4
+  .easypar NOTE 1 55 100 toggleoff
+  .showvalue off
+  .default 0
+$button 5
+  .easypar NOTE 1 56 100 toggleoff
+  .showvalue off
+  .default 0
+$button 6
+  .easypar NOTE 1 57 100 toggleoff
+  .showvalue off
+  .default 0
+$button 7
+  .easypar NOTE 1 58 100 toggleoff
+  .showvalue off
+  .default 0
+$button 8
+  .easypar NOTE 1 59 100 toggleoff
+  .showvalue off
+  .default 0
+$button 9
+  .easypar NOTE 1 60 100 toggleoff
+  .showvalue off
+  .default 0
+$button 10
+  .easypar NOTE 1 61 100 toggleoff
+  .showvalue off
+  .default 0
+$button 11
+  .easypar NOTE 1 62 100 toggleoff
+  .showvalue off
+  .default 0
+$button 12
+  .easypar NOTE 1 63 100 toggleoff
+  .showvalue off
+  .default 0
+$button 13
+  .easypar NOTE 1 64 100 toggleoff
+  .showvalue off
+  .default 0
+$button 14
+  .easypar NOTE 1 65 100 toggleoff
+  .showvalue off
+  .default 0
+$button 15
+  .easypar NOTE 1 66 100 toggleoff
+  .showvalue off
+  .default 0
+$button 16
+  .easypar NOTE 1 67 100 toggleoff
+  .showvalue off
+  .default 0
+$button 17
+  .easypar NOTE 1 68 100 toggleoff
+  .showvalue off
+  .default 0
+$button 18
+  .easypar NOTE 1 69 100 toggleoff
+  .showvalue off
+  .default 0
+$button 19
+  .easypar NOTE 1 70 100 toggleoff
+  .showvalue off
+  .default 0
+$button 20
+  .easypar NOTE 1 71 100 toggleoff
+  .showvalue off
+  .default 0
+$button 21
+  .easypar NOTE 1 72 100 toggleoff
+  .showvalue off
+  .default 0
+$button 22
+  .easypar NOTE 1 73 100 toggleoff
+  .showvalue off
+  .default 0
+$button 23
+  .easypar NOTE 1 74 100 toggleoff
+  .showvalue off
+  .default 0
+$button 24
+  .easypar NOTE 1 75 100 toggleoff
+  .showvalue off
+  .default 0
+$button 25
+  .easypar NOTE 1 76 100 toggleoff
+  .showvalue off
+  .default 0
+$button 26
+  .easypar NOTE 1 77 100 toggleoff
+  .showvalue off
+  .default 0
+$button 27
+  .easypar NOTE 1 78 100 toggleoff
+  .showvalue off
+  .default 0
+$button 28
+  .easypar NOTE 1 79 100 toggleoff
+  .showvalue off
+  .default 0
+$button 29
+  .easypar NOTE 1 80 100 toggleoff
+  .showvalue off
+  .default 0
+$button 30
+  .easypar NOTE 1 81 100 toggleoff
+  .showvalue off
+  .default 0
+$button 31
+  .easypar NOTE 1 82 100 toggleoff
+  .showvalue off
+  .default 0
+$button 32
+  .easypar NOTE 1 83 100 toggleoff
+  .showvalue off
+  .default 0
+$button 33
+  .easypar NOTE 10 35 100 toggleoff
+  .showvalue off
+  .default 0
+$button 34
+  .easypar NOTE 10 37 100 toggleoff
+  .showvalue off
+  .default 0
+$button 35
+  .easypar NOTE 10 39 100 toggleoff
+  .showvalue off
+  .default 0
+$button 36
+  .easypar NOTE 10 64 100 toggleoff
+  .showvalue off
+  .default 0
+$button 37
+  .easypar NOTE 10 62 100 toggleoff
+  .showvalue off
+  .default 0
+$button 38
+  .easypar NOTE 10 63 100 toggleoff
+  .showvalue off
+  .default 0
+$button 39
+  .easypar NOTE 10 54 100 toggleoff
+  .showvalue off
+  .default 0
+$button 40
+  .easypar NOTE 10 51 100 toggleoff
+  .showvalue off
+  .default 0
+$button 41
+  .easypar NOTE 10 36 100 toggleoff
+  .showvalue off
+  .default 0
+$button 42
+  .easypar NOTE 10 38 100 toggleoff
+  .showvalue off
+  .default 0
+$button 43
+  .easypar NOTE 10 40 100 toggleoff
+  .showvalue off
+  .default 0
+$button 44
+  .easypar NOTE 10 41 100 toggleoff
+  .showvalue off
+  .default 0
+$button 45
+  .easypar NOTE 10 43 100 toggleoff
+  .showvalue off
+  .default 0
+$button 46
+  .easypar NOTE 10 42 100 toggleoff
+  .showvalue off
+  .default 0
+$button 47
+  .easypar NOTE 10 46 100 toggleoff
+  .showvalue off
+  .default 0
+$button 48
+  .easypar NOTE 10 49 100 toggleoff
+  .showvalue off
+  .default 0
+$button 49
+  .easypar PC 1 0 0 0
+  .showvalue off
+  .default 0
+$button 50
+  .easypar PC 1 1 0 0
+  .showvalue off
+  .default 0
+$button 51
+  .easypar PC 1 2 0 0
+  .showvalue off
+  .default 0
+$button 52
+  .easypar PC 1 3 0 0
+  .showvalue off
+  .default 0
+$button 61
+  .easypar CC 1 64 127 0 toggleoff
+  .showvalue on
+  .default 0
+$button 62
+  .easypar CC 1 67 127 0 toggleoff
+  .showvalue on
+  .default 0
+$store 3
+$preset
+  .name 'Reason Subtractor       '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 5 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 40 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 41 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 42 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 44 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 8
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 33 0 127 absolute
+  .showvalue off
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 34 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 35 0 127 absolute
+  .showvalue off
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar CC 1 37 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar CC 1 36 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar CC 1 83 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15
+  .easypar CC 1 84 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar CC 1 82 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 26 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 1 27 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 19
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20
+  .easypar CC 1 110 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21
+  .easypar CC 1 111 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22
+  .easypar CC 1 114 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23
+  .easypar CC 1 112 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 26
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 27
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 28
+  .easypar CC 1 79 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 29
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 32
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 87 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 88 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 89 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 90 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 85 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 18 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 1 45 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 14 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 15 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 16 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 17 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 9 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 49 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 50 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 51 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 52 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 46 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 47 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 1 53 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 1 48 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar CC 1 68 127 0 increment 64
+  .showvalue on
+  .default 0
+$button 2
+  .easypar CC 1 43 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 14
+  .easypar CC 1 81 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 17
+  .easypar CC 1 30 5 0 toggleon
+  .showvalue on
+  .default 0
+$button 18
+  .easypar CC 1 28 5 0 increment 1
+  .showvalue on
+  .default 0
+$button 19
+  .easypar CC 1 29 5 0 increment 1
+  .showvalue on
+  .default 0
+$button 20
+  .easypar CC 1 113 3 0 increment 1
+  .showvalue on
+  .default 0
+$button 25
+  .easypar CC 1 76 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 26
+  .easypar CC 1 80 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 28
+  .easypar CC 1 75 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 33
+  .easypar CC 1 92 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 34
+  .easypar CC 1 20 32 1 increment 1
+  .showvalue off
+  .default 0
+$button 35
+  .easypar CC 1 21 9 0 increment 1
+  .showvalue on
+  .default 0
+$button 36
+  .easypar CC 1 22 12 0 increment 1
+  .showvalue on
+  .default 0
+$button 37
+  .easypar CC 1 23 100 0 increment 1
+  .showvalue off
+  .default 0
+$button 38
+  .easypar CC 1 25 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 39
+  .easypar CC 1 86 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 40
+  .easypar CC 1 91 5 0 increment 1
+  .showvalue on
+  .default 0
+$button 41
+  .easypar CC 1 105 2 0 increment 1
+  .showvalue off
+  .default 0
+$button 42
+  .easypar CC 1 95 32 1 increment 1
+  .showvalue on
+  .default 0
+$button 43
+  .easypar CC 1 102 9 0 increment 1
+  .showvalue on
+  .default 0
+$button 44
+  .easypar CC 1 103 12 0 increment 1
+  .showvalue on
+  .default 0
+$button 45
+  .easypar CC 1 104 100 0 increment 1
+  .showvalue on
+  .default 0
+$button 46
+  .easypar CC 1 115 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 47
+  .easypar CC 1 109 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 48
+  .easypar CC 1 19 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 52
+  .easypar MMC all play 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$store 4
+$preset
+  .name 'Reason NN-19            '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 5 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 57 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 40 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 41 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 42 0 125 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 6
+  .easypar CC 1 39 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 8
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 33 0 127 absolute
+  .showvalue off
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 34 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 35 0 127 absolute
+  .showvalue off
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar CC 1 36 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar CC 1 37 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 20 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 1 21 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 19
+  .easypar CC 1 22 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20
+  .easypar CC 1 23 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21
+  .easypar CC 1 24 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 46 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 47 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 45 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 48 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 49 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 26 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 27 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 14 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 15 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 16 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 17 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 18 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 9 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar CC 1 68 127 0 increment 64
+  .showvalue on
+  .default 0
+$button 2
+  .easypar CC 1 56 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 5
+  .easypar CC 1 43 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 14
+  .easypar CC 1 81 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 17
+  .easypar CC 1 55 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 21
+  .easypar CC 1 25 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 30
+  .easypar CC 1 81 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 41
+  .easypar CC 1 75 2 0 toggleon
+  .showvalue off
+  .default 0
+$button 42
+  .easypar CC 1 76 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 43
+  .easypar CC 1 19 9 0 toggleon
+  .showvalue off
+  .default 0
+$button 46
+  .easypar CC 1 30 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 47
+  .easypar CC 1 28 5 0 increment 1
+  .showvalue on
+  .default 0
+$button 48
+  .easypar CC 1 29 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 52
+  .easypar MMC all play 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$store 5
+$preset
+  .name 'Reason Malstroem        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 5 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 50 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 49 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 46 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 48 0 124 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 6
+  .easypar CC 1 51 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 7
+  .easypar CC 1 52 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 8
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 34 0 127 absolute
+  .showvalue off
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 37 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 33 0 127 absolute
+  .showvalue off
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar CC 1 35 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar CC 1 26 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar CC 1 27 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15
+  .easypar CC 1 31 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar CC 1 40 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 110 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 1 118 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 19
+  .easypar CC 1 111 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20
+  .easypar CC 1 112 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21
+  .easypar CC 1 113 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22
+  .easypar CC 1 58 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23
+  .easypar CC 1 105 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 26
+  .easypar CC 1 79 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 27
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 28
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 29
+  .easypar CC 1 14 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 30
+  .easypar CC 1 15 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 31
+  .easypar CC 1 16 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 32
+  .easypar CC 1 17 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 92 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 93 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 91 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 43 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 42 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 53 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 86 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 102 0 8 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 43
+  .easypar CC 1 103 0 12 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 44
+  .easypar CC 1 104 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 44 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 21 0 8 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 47
+  .easypar CC 1 22 0 12 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 48
+  .easypar CC 1 23 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 87 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 88 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 89 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 90 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 9 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar CC 1 68 127 0 increment 64
+  .showvalue on
+  .default 0
+$button 2
+  .easypar CC 1 43 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 7
+  .easypar CC 1 47 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 9
+  .easypar CC 1 39 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 12
+  .easypar CC 1 36 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 13
+  .easypar CC 1 28 127 0 increment 3
+  .showvalue on
+  .default 0
+$button 14
+  .easypar CC 1 29 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 15
+  .easypar CC 1 69 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 16
+  .easypar CC 1 30 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 17
+  .easypar CC 1 115 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 18
+  .easypar CC 1 116 5 0 toggleon
+  .showvalue on
+  .default 0
+$button 19
+  .easypar CC 1 70 5 0 toggleon
+  .showvalue on
+  .default 0
+$button 20
+  .easypar CC 1 117 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 22
+  .easypar CC 1 57 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 25
+  .easypar CC 1 55 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 26
+  .easypar CC 1 81 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 27
+  .easypar CC 1 76 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 28
+  .easypar CC 1 77 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 31
+  .easypar CC 1 19 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 32
+  .easypar CC 1 18 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 33
+  .easypar CC 1 25 2 0 toggleon
+  .showvalue off
+  .default 0
+$button 34
+  .easypar CC 1 114 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 35
+  .easypar CC 1 56 9 0 toggleon
+  .showvalue off
+  .default 0
+$button 36
+  .easypar CC 1 54 12 0 toggleon
+  .showvalue off
+  .default 0
+$button 37
+  .easypar CC 1 75 100 0 toggleon
+  .showvalue off
+  .default 0
+$button 38
+  .easypar CC 1 62 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 39
+  .easypar CC 1 80 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 40
+  .easypar CC 1 82 5 0 toggleon
+  .showvalue off
+  .default 0
+$button 41
+  .easypar CC 1 95 2 0 toggleon
+  .showvalue off
+  .default 0
+$button 42
+  .easypar CC 1 61 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 43
+  .easypar CC 1 60 9 0 toggleon
+  .showvalue off
+  .default 0
+$button 45
+  .easypar CC 1 41 100 0 toggleon
+  .showvalue off
+  .default 0
+$button 46
+  .easypar CC 1 59 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 52
+  .easypar MMC all play 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$store 6
+$preset
+  .name 'Reason Dr Rex           '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 33 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 34 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 35 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 46 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 47 0 124 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 6
+  .easypar CC 1 36 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 7
+  .easypar CC 1 39 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 8
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 26
+  .easypar CC 1 79 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 27
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 28
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 29
+  .easypar CC 1 14 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 30
+  .easypar CC 1 15 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 31
+  .easypar CC 1 16 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 32
+  .easypar CC 1 17 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 22 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 21 0 8 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 35
+  .easypar CC 1 23 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 24 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 18 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 14 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 15 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 16 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 17 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 76 5 0 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 5
+$encoder 49
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 9 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 28 6 0 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 6
+$encoder 55
+  .easypar CC 1 26 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 1 27 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar CC 1 68 127 0 increment 64
+  .showvalue on
+  .default 0
+$button 2
+  .easypar CC 1 43 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 7
+  .easypar CC 1 47 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 9
+  .easypar CC 1 39 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 12
+  .easypar CC 1 36 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 13
+  .easypar CC 1 28 127 0 increment 3
+  .showvalue on
+  .default 0
+$button 14
+  .easypar CC 1 29 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 15
+  .easypar CC 1 69 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 16
+  .easypar CC 1 30 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 17
+  .easypar CC 1 115 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 18
+  .easypar CC 1 116 5 0 toggleon
+  .showvalue on
+  .default 0
+$button 19
+  .easypar CC 1 70 5 0 toggleon
+  .showvalue on
+  .default 0
+$button 20
+  .easypar CC 1 117 2 0 increment 1
+  .showvalue on
+  .default 0
+$button 22
+  .easypar CC 1 57 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 25
+  .easypar CC 1 55 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 26
+  .easypar CC 1 81 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 27
+  .easypar CC 1 76 4 0 increment 1
+  .showvalue on
+  .default 0
+$button 28
+  .easypar CC 1 77 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 31
+  .easypar CC 1 19 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 32
+  .easypar CC 1 18 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 46
+  .easypar CC 1 30 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 47
+  .easypar CC 1 29 3 0 increment 1
+  .showvalue on
+  .default 0
+$button 48
+  .easypar CC 1 75 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 52
+  .easypar MMC all play 00:00:00.00 noloc
+  .showvalue off
+  .default 0
+$store 7
+$preset
+  .name 'Reason Redrum 1         '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 8 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 9 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 10 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 13 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 6
+  .easypar CC 1 14 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 7
+  .easypar CC 1 15 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 8
+  .easypar CC 1 16 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 19 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 20 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 21 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar CC 1 22 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar CC 1 23 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar CC 1 24 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15
+  .easypar CC 1 25 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar CC 1 26 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 29 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 1 30 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 19
+  .easypar CC 1 31 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20
+  .easypar CC 1 33 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21
+  .easypar CC 1 34 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22
+  .easypar CC 1 35 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23
+  .easypar CC 1 36 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24
+  .easypar CC 1 37 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 41 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 26
+  .easypar CC 1 42 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 27
+  .easypar CC 1 43 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 28
+  .easypar CC 1 44 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 29
+  .easypar CC 1 45 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 30
+  .easypar CC 1 46 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 31
+  .easypar CC 1 47 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 32
+  .easypar CC 1 48 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 79 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 80 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 81 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 82 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 83 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 1 84 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 51 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 52 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 53 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 54 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 55 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 56 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 57 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 58 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 61 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 62 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 87 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 88 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 89 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 102 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 1 103 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 1 90 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 6
+  .easypar CC 1 102 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 7
+  .easypar CC 1 103 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 14
+  .easypar CC 1 65 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 15
+  .easypar CC 1 66 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 33
+  .easypar CC 1 67 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 34
+  .easypar CC 1 68 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 35
+  .easypar CC 1 69 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 36
+  .easypar CC 1 70 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 37
+  .easypar CC 1 71 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 38
+  .easypar CC 1 72 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 39
+  .easypar CC 1 73 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 40
+  .easypar CC 1 74 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 41
+  .easypar CC 1 104 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 42
+  .easypar CC 1 105 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 43
+  .easypar CC 1 107 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 44
+  .easypar CC 1 108 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 45
+  .easypar CC 1 109 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 46
+  .easypar CC 1 94 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 47
+  .easypar CC 1 95 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 48
+  .easypar CC 1 110 127 0 increment 4
+  .showvalue on
+  .default 0
+$store 8
+$preset
+  .name 'Reason Redrum 2         '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 17 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 18 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 27 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 28 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 39 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 1 40 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 49 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 26
+  .easypar CC 1 50 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 85 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 86 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 5 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 59 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 60 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 91 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 63 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 3
+  .easypar CC 1 92 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 6
+  .easypar CC 1 102 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 7
+  .easypar CC 1 103 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 14
+  .easypar CC 1 65 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 15
+  .easypar CC 1 66 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 33
+  .easypar CC 1 75 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 34
+  .easypar CC 1 76 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 35
+  .easypar CC 1 3 127 0 increment 1
+  .showvalue on
+  .default 0
+$button 41
+  .easypar CC 1 111 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 42
+  .easypar CC 1 106 127 0 increment 4
+  .showvalue on
+  .default 0
+$button 43
+  .easypar CC 1 3 127 0 increment -1
+  .showvalue on
+  .default 0
+$store 9
+$preset
+  .name 'Groove Agent            '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 91 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar PC 1 off off
+  .showvalue on
+  .mode 12dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 8
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 70 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar CC 2 70 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar CC 2 71 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15
+  .easypar CC 2 75 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar CC 2 72 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 18
+  .easypar CC 2 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 19
+  .easypar CC 3 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20
+  .easypar CC 4 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21
+  .easypar CC 5 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22
+  .easypar CC 6 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23
+  .easypar CC 7 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24
+  .easypar CC 8 73 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 3 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 3 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 3 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 3 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 4 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 4 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 4 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 4 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 5 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 5 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 5 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 5 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 6 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 6 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 6 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 6 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 7 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 7 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 7 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 7 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 8 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 8 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 8 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 8 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 33
+  .easypar CC 1 2 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 34
+  .easypar CC 1 3 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 35
+  .easypar CC 1 83 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 41
+  .easypar CC 1 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 42
+  .easypar CC 2 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 43
+  .easypar CC 3 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 44
+  .easypar CC 4 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 45
+  .easypar CC 5 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 46
+  .easypar CC 6 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 47
+  .easypar CC 7 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 48
+  .easypar CC 8 69 127 0 toggleon
+  .showvalue off
+  .default 0
+$store 10
+$preset
+  .name 'Halion                  '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar PC 1 off off
+  .showvalue on
+  .mode 12dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 33
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 80 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 83 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 89 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 85 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 82 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 19 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 79 79 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 79
+$encoder 46
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 28 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 31 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 90 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 5 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 20 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 44 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 33
+  .easypar CC 1 21 127 0 toggleon
+  .showvalue off
+  .default 0
+$store 11
+$preset
+  .name 'NI Spectral Delay       '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 6 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3
+  .easypar CC 1 1 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 2 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 3 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 6
+  .easypar CC 1 4 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 79 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 80 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12
+  .easypar CC 1 87 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13
+  .easypar CC 1 88 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar CC 1 89 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 66 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 69 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 81 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 83 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 76 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 1 85 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 67 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 82 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 84 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 86 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 68 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 3
+  .easypar CC 1 5 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 4
+  .easypar CC 1 8 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 5
+  .easypar CC 1 9 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 6
+  .easypar CC 1 10 127 0 increment 5
+  .showvalue on
+  .default 0
+$button 7
+  .easypar CC 1 11 127 0 increment 20
+  .showvalue on
+  .default 0
+$button 33
+  .easypar CC 1 15 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 34
+  .easypar CC 1 14 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 35
+  .easypar CC 1 17 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 36
+  .easypar CC 1 18 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 37
+  .easypar CC 1 19 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 38
+  .easypar CC 1 20 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 41
+  .easypar CC 1 64 127 0 toggleon
+  .showvalue off
+  .default 0
+$store 12
+$preset
+  .name 'NI Pro 53               '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1
+  .easypar CC 1 20 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 2
+  .easypar CC 1 21 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 4
+  .easypar CC 1 40 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5
+  .easypar CC 1 43 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 7
+  .easypar PC 1 off off
+  .showvalue on
+  .mode 12dot
+  .resolution 24 24 24 24
+  .default 0
+$encoder 8
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9
+  .easypar CC 1 50 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10
+  .easypar CC 1 51 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11
+  .easypar CC 1 55 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14
+  .easypar CC 1 45 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15
+  .easypar CC 1 46 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16
+  .easypar CC 1 47 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17
+  .easypar CC 1 26 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25
+  .easypar CC 1 34 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 29
+  .easypar CC 1 34 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 32
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 12dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33
+  .easypar CC 1 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 105 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 106 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 107 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 1 108 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 76 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 77 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 78 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 110 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 111 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 112 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 116 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 80 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 81 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 82 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 83 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 5 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 87 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 1 88 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$button 1
+  .easypar CC 1 22 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 2
+  .easypar CC 1 23 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 3
+  .easypar CC 1 24 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 4
+  .easypar CC 1 41 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 5
+  .easypar CC 1 42 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 6
+  .easypar CC 1 44 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 9
+  .easypar CC 1 52 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 10
+  .easypar CC 1 53 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 11
+  .easypar CC 1 54 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 12
+  .easypar CC 1 56 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 13
+  .easypar CC 1 57 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 17
+  .easypar CC 1 25 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 18
+  .easypar CC 1 27 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 19
+  .easypar CC 1 28 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 20
+  .easypar CC 1 29 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 21
+  .easypar CC 1 35 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 26
+  .easypar CC 1 35 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 27
+  .easypar CC 1 36 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 28
+  .easypar CC 1 37 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 29
+  .easypar CC 1 38 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 30
+  .easypar CC 1 39 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 31
+  .easypar CC 1 37 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 32
+  .easypar CC 1 38 127 0 toggleon
+  .showvalue on
+  .default 0
+$button 41
+  .easypar CC 1 59 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 42
+  .easypar CC 1 86 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 43
+  .easypar CC 1 85 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 46
+  .easypar CC 1 115 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 47
+  .easypar CC 1 117 127 0 toggleon
+  .showvalue off
+  .default 0
+$button 48
+  .easypar CC 1 118 127 0 toggleon
+  .showvalue off
+  .default 0
+$store 13
+$preset
+  .name 'NI XPRESS               '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 33
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34
+  .easypar CC 1 76 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39
+  .easypar CC 1 10 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 43
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 45
+  .easypar CC 1 72 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47
+  .easypar CC 1 10 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 48
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 49
+  .easypar CC 1 74 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50
+  .easypar CC 1 71 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51
+  .easypar CC 1 70 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52
+  .easypar CC 1 73 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53
+  .easypar CC 1 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54
+  .easypar CC 1 12 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55
+  .easypar CC 1 10 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56
+  .easypar CC 1 7 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$store 14
 $end

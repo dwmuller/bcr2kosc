@@ -31,5 +31,14 @@
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "rust: cargo build",
         },
-    ]
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "Debug get-preset all",
+            "program": "${workspaceFolder}/target/debug/bcr2kosc.exe",
+            "args": ["-vv", "get-preset", "Focusrite USB MIDI", "Focusrite USB MIDI", "1", "all"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "rust: cargo build",
+        },
+      ]
 }

@@ -3,6 +3,7 @@
 use std::error::Error;
 
 use futures::{Sink, SinkExt, Stream, StreamExt};
+use log::info;
 use midi_control::MidiMessage;
 
 use super::{BControlCommand, BControlModel, BControlSysEx, DeviceID, PresetIndex};
@@ -22,6 +23,10 @@ where
                 if let BControlCommand::SendBclMessage { msg_index, text } = sysex.command {
                     if msg_index == next_line_index {
                         next_line_index += 1;
+                        if next_line_index >= 16384 {
+                            info!("BCL line index wrapped.");
+                            next_line_index = 0;
+                        }
                         let done = text == "$end";
                         v.push(text);
                         if done {
