@@ -6,8 +6,13 @@ authors = [ "dan.muller@dmuller.us" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[target.'cfg(windows)'.dependencies]
+midir = {version = "0.8.0", features = ["winrt"] }
+registry = "1.2.2"
+utfx = "0.1.0"
+
 [dependencies]
-midir = {version = "0.8.0", features = [] }
+midir = {version = "0.8.0"}
 clap = { version = "4.0.14", features = ["derive"] }
 log = "0.4.17"
 stderrlog = "0.5.3"
@@ -16,6 +21,7 @@ midi-control = "0.2.1"
 tokio = { version = "1.21.2", features = ["full"] }
 futures = "0.3.25"
 pin-project = "1.0.12"
+simple-error = "0.2.3"
 
 
 

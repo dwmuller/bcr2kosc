@@ -11,6 +11,7 @@ use clap::{Parser, Subcommand};
 use futures::{pin_mut, select, FutureExt, SinkExt, Stream, StreamExt};
 use log::info;
 use midi_control::MidiMessage;
+use simple_error::bail;
 use tokio::signal;
 
 mod b_control;
@@ -22,6 +23,11 @@ mod translator;
 use crate::b_control::*;
 use crate::midi_io::{MidiSink, MidiStream};
 use crate::osc_service::*;
+
+#[cfg(windows)]
+mod winrt;
+#[cfg(windows)]
+use crate::winrt::*;
 
 /// Program name, used in a variety of log messages.
 pub const PGM: &str = "bcr2kosc";
@@ -58,32 +64,44 @@ enum Commands {
         /// The name of the MIDI port to send data to.
         midi_out: String,
     },
+    /// Select a preset on a B-Control.
+    /// 
+    /// No confirmation is sent back by the device.
+    SelectPreset {
+        /// The device number of the B-Control, from 1 through 16.
+        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
+        device: u8,
+        /// The name of the MIDI port to send data to.
+        midi_out: String,
+        /// The number of the preset to retrieve, from 1 to 32.
+        #[arg(value_parser=parse_preset_arg)]
+        preset: PresetIndex,
+    },
     /// Get global settings BCL from a B-Control.
     GetGlobal {
+        /// The device number of the B-Control, from 1 through 16.
+        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
+        device: u8,
         /// The name of the MIDI port recieve data from.
         midi_in: String,
         /// The name of the MIDI port to send data to.
         midi_out: String,
-        /// The device number of the B-Control, which can be one through 16.
-        /// Defaults to 1.
-        #[arg(default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
-        device: u8,
     },
     /// Get preset information from a B-Control.
     GetPreset {
+        /// The device number of the B-Control, from 1 through 16.
+        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
+        device: u8,
         /// The name of the MIDI port recieve data from.
         midi_in: String,
         /// The name of the MIDI port to send data to.
         midi_out: String,
-        /// The device number of the B-Control, which can be one through 16.
-        /// Defaults to 1.
-        #[arg(default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
-        device: u8,
         /// The number of the preset to retrieve, from 1 to 32, "temp", or
-        /// "all". Defaults to temp.
+        /// "all".
         ///
         /// If you specify "all", you get a dump of the device's global
-        /// settings, followed by all filled memory presets,
+        /// settings, followed by all filled memory presets. This can take
+        /// a few minutes.
         #[arg(default_value_t = PresetIndex::Temporary, value_parser=parse_preset_arg)]
         preset: PresetIndex,
     },
@@ -99,6 +117,20 @@ enum Commands {
         /// sent.
         osc_out_addrs: Vec<SocketAddr>,
     },
+    #[cfg(windows)]
+    /// Rename a WinRT MIDI port.
+    /// 
+    /// WinRT often creates odd port names by default. This command lets you
+    /// persistently rename a port by editing the registry.
+    RenamePort {
+        /// The type of port to rename, "input" or "output".
+        #[arg(value_parser=parse_port_type_arg)]
+        ptype: PortType,
+        /// The name of the MIDI port to rename.
+        name: String,
+        /// The new name for the MIDI port.
+        new_name: String,
+    }
 }
 fn parse_preset_arg(s: &str) -> Result<PresetIndex> {
     match s {
@@ -126,6 +158,11 @@ async fn main() -> Result<()> {
     match &cli.command {
         Some(Commands::ListPorts {}) => Ok(list_ports()),
         Some(Commands::Listen { midi_in }) => listen(midi_in).await,
+        Some(Commands::SelectPreset {
+            device,
+            midi_out,
+            preset,
+        }) => select_preset(midi_out, *device, *preset).await,
         Some(Commands::GetGlobal {
             midi_in,
             midi_out,
@@ -149,6 +186,9 @@ async fn main() -> Result<()> {
             osc_out_addrs,
         }) => serve(&midi_in, &midi_out, &osc_in_addr, &osc_out_addrs).await,
         None => Ok(()),
+        #[cfg(windows)]
+        Some(Commands::RenamePort { ptype, name, new_name }) =>
+        rename_port(ptype, &name, &new_name)
     }
 }
 
@@ -183,6 +223,22 @@ async fn listen(port_name: &str) -> Result<()> {
         _ = signal::ctrl_c().fuse() => {}
     };
     Ok(())
+}
+
+async fn select_preset(midi_out: &str, device: u8, preset: PresetIndex) -> Result<()> {
+    match preset {
+        PresetIndex::Preset(index) => {
+            let mut midi_out = MidiSink::bind(midi_out)?;
+            let bdata = BControlSysEx {
+                device: DeviceID::Device(device),
+                model: BControlModel::Any,
+                command: BControlCommand::SelectPreset{index},
+            };
+            midi_out.send(MidiMessage::from(&bdata)).await?;
+            Ok(())
+        },
+        _ => bail!("A specific stored preset must be selected."),
+    }
 }
 
 async fn get_global(in_port_name: &str, out_port_name: &str, device: u8) -> Result<()> {
