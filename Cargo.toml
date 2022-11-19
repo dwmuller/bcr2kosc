@@ -6,10 +6,17 @@ authors = [ "dan.muller@dmuller.us" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[target.'cfg(windows)'.dependencies]
+[target.'cfg(all(windows,winrt))'.dependencies]
 midir = {version = "0.8.0", features = ["winrt"] }
 registry = "1.2.2"
 utfx = "0.1.0"
+
+[features]
+# On Windows, use the WinRT API for MIDI I/O instead of the default WinMM API.
+winrt = []
+# My Focusrite USB MIDI drivers have issues when used via WinMM, so I'm using
+# WinRT. Your situation might be different.
+default = [ "winrt" ]
 
 [dependencies]
 midir = {version = "0.8.0"}

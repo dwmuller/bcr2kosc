@@ -24,9 +24,9 @@ use crate::b_control::*;
 use crate::midi_io::{MidiSink, MidiStream};
 use crate::osc_service::*;
 
-#[cfg(windows)]
+#[cfg(winrt)]
 mod winrt;
-#[cfg(windows)]
+#[cfg(winrt)]
 use crate::winrt::*;
 
 /// Program name, used in a variety of log messages.
@@ -67,6 +67,8 @@ enum Commands {
     /// Select a preset on a B-Control.
     /// 
     /// No confirmation is sent back by the device.
+    /// 
+    /// This seems to have no effect with a BCR.
     SelectPreset {
         /// The device number of the B-Control, from 1 through 16.
         #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=16))]
@@ -117,11 +119,13 @@ enum Commands {
         /// sent.
         osc_out_addrs: Vec<SocketAddr>,
     },
-    #[cfg(windows)]
+    #[cfg(winrt)]
     /// Rename a WinRT MIDI port.
     /// 
     /// WinRT often creates odd port names by default. This command lets you
-    /// persistently rename a port by editing the registry.
+    /// rename a port by editing the registry. The result is ephemeral -- names
+    /// are reset when devices change and are re-enumerted, or on system boot or
+    /// update.
     RenamePort {
         /// The type of port to rename, "input" or "output".
         #[arg(value_parser=parse_port_type_arg)]
@@ -186,7 +190,7 @@ async fn main() -> Result<()> {
             osc_out_addrs,
         }) => serve(&midi_in, &midi_out, &osc_in_addr, &osc_out_addrs).await,
         None => Ok(()),
-        #[cfg(windows)]
+        #[cfg(winrt)]
         Some(Commands::RenamePort { ptype, name, new_name }) =>
         rename_port(ptype, &name, &new_name)
     }
